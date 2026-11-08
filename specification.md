@@ -44,7 +44,7 @@ Last updated: 2026-11-08 (the six placeholder research posts were deleted; only 
 
 ```sh
 npm install
-npm run dev       # http://localhost:4321/vritilabs/   (note the base path)
+npm run dev       # http://localhost:4321/
 npm run build     # outputs to dist/; must finish with no errors
 npm run preview
 ```
@@ -52,10 +52,17 @@ npm run preview
 ### Deployment
 
 - Repo: `https://github.com/vriti-labs-ai/vritilabs`
-- Live URL: `https://vriti-labs-ai.github.io/vritilabs/`
+- Live URL: `https://vritilabs.ai/` (custom domain; `vriti-labs-ai.github.io/vritilabs/` redirects to it)
 - Workflow: `.github/workflows/deploy.yml` runs on every push to `main` (`actions/checkout@v7`, `withastro/action@v6`, `actions/deploy-pages@v5`).
 - One-time setup: repo **Settings → Pages → Source: GitHub Actions**.
-- `astro.config.mjs` sets `site: 'https://vriti-labs-ai.github.io'`, `base: '/vritilabs'` and `trailingSlash: 'always'`. For a custom domain, change `site` and remove `base`.
+- `astro.config.mjs` sets `site: 'https://vritilabs.ai'` (no `base`) and `trailingSlash: 'always'`.
+- **Custom domain:** `vritilabs.ai` is set in repo **Settings → Pages → Custom domain** (enter the bare domain, with no `https://` and no trailing `/`).
+  - DNS at the registrar:
+    - Apex `A` records: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`.
+    - Apex `AAAA` records: `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`, `2606:50c0:8003::153`.
+    - `www` `CNAME` → `vriti-labs-ai.github.io`.
+  - Turn on **Enforce HTTPS** once the certificate is issued.
+  - With Actions-based deploys, no `CNAME` file is needed in the repo.
 
 ---
 
@@ -86,7 +93,7 @@ src/
 
 ## 4. Pages and routes
 
-All routes are under the `/vritilabs/` base path and end with a trailing slash.
+All routes are served from the domain root and end with a trailing slash.
 
 | Route | File | Contents |
 |---|---|---|
@@ -309,7 +316,7 @@ Edit the tokens in `src/styles/global.css`. Components read only the tokens, so 
 
 - **Stale content cache:** after changing `content.config.ts` or JSON collection files, the dev server may keep serving old data. Fix it with: `npx astro dev stop; rm -rf .astro node_modules/.astro; npm run dev`.
 - **Background dev server:** in Astro 7, `astro dev` runs in the background. Manage it with `npx astro dev status | logs | stop`.
-- **Base path:** always build internal links with `url('path/')` from `src/lib/utils.ts`, never a bare `/path`. In Markdown, use `/vritilabs/...` for absolute image links.
+- **Links:** build internal links with `url('path/')` from `src/lib/utils.ts`. It handles any base path, so links survive a future hosting change. In Markdown, absolute image links are `/drawings/...`.
 - **Hiding elements:** `[hidden] { display: none !important; }` is global, because component styles otherwise override the `hidden` attribute.
 - **Untracked files:** files not yet committed can't be renamed with `git mv`; use a plain `mv`.
 - **Headless screenshots:** Chrome headless won't render narrower than about 500px, and CSS animations may look frozen in screenshots. Check motion by measuring `transform` over time, not visually.

@@ -8,7 +8,7 @@ A static research hub built with [Astro](https://astro.build), deployed to GitHu
 
 ```sh
 npm install
-npm run dev        # http://localhost:4321/vritilabs/
+npm run dev        # http://localhost:4321/
 npm run build      # outputs to dist/
 ```
 
@@ -49,6 +49,5 @@ Hand-drawn borders and dividers (`HandBox`, `HandRule`) are rendered by Rough.js
 
 Pushing to `main` runs `.github/workflows/deploy.yml`.
 One-time setup: repo **Settings → Pages → Source: GitHub Actions**.
-Live at https://vriti-labs-ai.github.io/vritilabs/
+Live at https://vritilabs.ai/
 
-For a custom domain, set `site` in `astro.config.mjs` to your domain and remove `base`.

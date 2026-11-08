@@ -2,11 +2,10 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 
-// GitHub Pages: https://vriti-labs-ai.github.io/vritilabs
-// If you move to a custom domain, set `site` to it and remove `base`.
+// Hosted on GitHub Pages with the custom domain https://vritilabs.ai
+// (no base path: the site is served from the domain root).
 export default defineConfig({
-  site: 'https://vriti-labs-ai.github.io',
-  base: '/vritilabs',
+  site: 'https://vritilabs.ai',
   trailingSlash: 'always',
   integrations: [mdx()],
   // Content Security Policy, emitted as a <meta> tag on every page. Astro hashes
