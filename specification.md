@@ -269,8 +269,8 @@ A subtle paper-grain SVG noise is layered over the body background.
 | Item | Where | Status |
 |---|---|---|
 | Cover illustrations for the two real posts | `public/drawings/agentic-economics.svg`, `context-funnel.svg` | Generated with Rough.js; replace with real drawings |
-| 3 testimonials signed "Placeholder Name" | `src/content/testimonials.json` (`t1`, `t3`, `t4`) | Fictional; **remove before launch**. Only `iit-ism-*` entries are real |
-| Portrait images | `public/people/placeholder-*.svg` | Generic sketches |
+| Testimonials `t1` (Sanjay M) and `t3` (Sajikumar M) | `src/content/testimonials.json` | Names supplied by the owner; the **quote wording was drafted by the assistant**, so confirm each person approved it. The `iit-ism-*` entries are sourced quotes and appear first |
+| Portrait images | `public/people/placeholder-1.svg`, `placeholder-3.svg` | Generic sketches |
 | Program details: lengths, the "Intermediate" level, curriculum sections | `src/content/services/*.md` | Invented by the assistant; confirm with the owner |
 | Products & Services descriptions | `src/content/teams/*.md` | Assistant-written; confirm with the owner |
 | About page experience-area one-liners | `domains` array in `src/pages/about.astro` | Assistant-written; confirm with the owner |

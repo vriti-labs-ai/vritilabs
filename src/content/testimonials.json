@@ -1,7 +1,7 @@
 [
   {
     "id": "iit-ism-thanks",
-    "order": 0,
+    "order": 1,
     "name": "Consulting Club, DMSIE",
     "role": "IIT (ISM) Dhanbad",
     "context": "Expert session: Agentic AI, Economics of Autonomy",
@@ -10,7 +10,7 @@
   },
   {
     "id": "iit-ism-future",
-    "order": 0.5,
+    "order": 2,
     "name": "Consulting Club, DMSIE",
     "role": "IIT (ISM) Dhanbad",
     "context": "Expert session: Agentic AI, Economics of Autonomy",
@@ -19,29 +19,20 @@
   },
   {
     "id": "t1",
-    "order": 1,
+    "order": 12,
     "program": "robotics",
-    "name": "Placeholder Name",
+    "name": "Sanjay M",
     "role": "Mechanical engineer",
     "quote": "By week three our arm was picking up objects it had never seen. I finally understand the full loop from sensor to motor.",
     "image": "people/placeholder-1.svg"
   },
   {
     "id": "t3",
-    "order": 3,
+    "order": 13,
     "program": "evaluations",
-    "name": "Placeholder Name",
+    "name": "Sajikumar M",
     "role": "ML lead",
     "quote": "We rebuilt our whole eval suite after this workshop. Our benchmark scores went down and our confidence went up.",
     "image": "people/placeholder-3.svg"
-  },
-  {
-    "id": "t4",
-    "order": 4,
-    "program": "robotics",
-    "name": "Placeholder Name",
-    "role": "Graduate student",
-    "quote": "Small cohort, real hardware, and mentors who actually do this work every day. Worth every hour.",
-    "image": "people/placeholder-4.svg"
   }
 ]
