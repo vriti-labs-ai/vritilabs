@@ -1,0 +1,41 @@
+---
+import HandRule from './HandRule.astro';
+import { url } from '../lib/utils';
+const year = new Date().getFullYear();
+---
+<footer class="wrap site-footer">
+  <HandRule seed={42} />
+  <div class="cols">
+    <div>
+      <p class="brand">Vriti<span class="hand">labs</span></p>
+    </div>
+    <div>
+      <h4>Explore</h4>
+      <a href={url('education/')}>Educational Services</a>
+      <a href={url('')}>Research</a>
+      <a href={url('solutions/')}>Products & Services</a>
+      <a href={url('about/')}>About</a>
+      <a href={url('contact/')}>Contact</a>
+    </div>
+    <div>
+      <h4>Elsewhere</h4>
+      <a href="https://github.com/vriti-labs-ai">GitHub</a>
+    </div>
+  </div>
+  <p class="copy">© {year} Vriti Labs</p>
+</footer>
+
+<style>
+  .site-footer { padding-block: 64px 40px; }
+  .cols {
+    display: grid; gap: 32px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    margin-top: 32px;
+  }
+  .brand { font-family: var(--serif); font-size: 22px; margin: 0 0 8px; }
+  .note { color: var(--ink-soft); font-size: 14px; max-width: 28ch; margin: 0; }
+  h4 { font-size: 13px; font-weight: 500; color: var(--ink-soft); margin: 0 0 10px; }
+  .cols a { display: block; text-decoration: none; font-size: 14px; padding: 3px 0; }
+  .cols a:hover { text-decoration: underline; }
+  .copy { margin-top: 48px; font-size: 13px; color: var(--ink-soft); }
+</style>

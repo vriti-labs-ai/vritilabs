@@ -1,0 +1,23 @@
+/* Diagram components used inside MDX posts. Kept global (not scoped) so the
+   Content Security Policy hash covers them; scoped styles in MDX are not hashed. */
+
+.hand-timeline, .hand-flow { margin: 2em 0; color: var(--ink); }
+.hand-timeline .scroll, .hand-flow .scroll { overflow-x: auto; }
+.hand-timeline svg, .hand-flow svg { display: block; width: 100%; min-width: 560px; height: auto; }
+.hand-timeline figcaption, .hand-flow figcaption { font-family: var(--sans); font-size: 13px; color: var(--ink-soft); margin-top: 6px; }
+
+.hand-timeline .year { font-family: var(--sans); font-size: 17px; font-weight: 500; fill: var(--ink); }
+.hand-timeline .label { font-family: var(--serif); font-size: 27px; fill: var(--heading); }
+
+.hand-flow .num { font-family: var(--sans); font-size: 22px; font-weight: 500; fill: var(--ink); }
+.hand-flow .label { font-family: var(--serif); font-size: 25px; fill: var(--heading); }
+
+.hand-sum {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 12px 20px; margin: 1.6em 0; padding: 24px 16px;
+  font-family: var(--serif); font-size: clamp(22px, 3vw, 30px); color: var(--heading);
+  background: var(--tile-bg); border-radius: var(--radius);
+}
+.hand-sum strong { font-weight: 500; text-align: center; }
+.hand-sum em { font-style: normal; color: var(--ink); text-decoration: underline wavy; text-underline-offset: 6px; text-decoration-thickness: 1px; }
+.hand-sum svg { width: 30px; height: 30px; color: var(--ink); flex: none; }

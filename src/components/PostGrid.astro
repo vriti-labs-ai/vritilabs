@@ -1,0 +1,87 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import PostCard from './PostCard.astro';
+interface Props {
+  posts: CollectionEntry<'posts'>[];
+  teamNames: Record<string, string>;
+  showFilters?: boolean;
+  pageSize?: number;
+}
+const { posts, teamNames, showFilters = true, pageSize = 9 } = Astro.props;
+const usedTeams = [...new Set(posts.map((p) => p.data.team.id))];
+---
+<section class="wrap all" data-grid data-page-size={pageSize} aria-labelledby="all-h">
+  <div class="bar">
+    <h2 id="all-h" class="section-title">All research <span class="total">{posts.length}</span></h2>
+    {showFilters && (
+      <div class="controls">
+        <select class="btn" data-filter aria-label="Filter by product or service">
+          <option value="">All products &amp; services</option>
+          {usedTeams.map((t) => <option value={t}>{teamNames[t]}</option>)}
+        </select>
+        <select class="btn" data-sort aria-label="Sort">
+          <option value="new">Most recent</option>
+          <option value="old">Oldest</option>
+        </select>
+        <button class="btn" data-view aria-pressed="false">List view</button>
+      </div>
+    )}
+  </div>
+  <div class="grid" data-items>
+    {posts.map((post) => <PostCard post={post} teamName={teamNames[post.data.team.id]} />)}
+  </div>
+  <div class="more"><button class="btn" data-more>See more</button></div>
+</section>
+
+<style>
+  .all { padding-block: 32px; }
+  .bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 28px; }
+  .section-title { font-size: 28px; }
+  .total { font-family: var(--sans); font-size: 14px; color: var(--ink-soft); vertical-align: middle; }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; }
+  select.btn { appearance: none; padding-right: 16px; }
+  select.btn:hover { background: transparent; color: var(--ink); }
+  .grid { display: grid; gap: 48px 32px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  /* list view */
+  .grid.list { grid-template-columns: 1fr; gap: 28px; }
+  .grid.list :global(.card) { flex-direction: row; align-items: flex-start; gap: 24px; }
+  .grid.list :global(.media) { flex: 0 0 min(240px, 35%); }
+  .more { display: flex; justify-content: center; margin-top: 48px; }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-grid]').forEach((root) => {
+    const items = root.querySelector<HTMLElement>('[data-items]')!;
+    const cards = Array.from(items.children) as HTMLElement[];
+    const filter = root.querySelector<HTMLSelectElement>('[data-filter]');
+    const sort = root.querySelector<HTMLSelectElement>('[data-sort]');
+    const view = root.querySelector<HTMLButtonElement>('[data-view]');
+    const more = root.querySelector<HTMLButtonElement>('[data-more]')!;
+    const pageSize = Number(root.dataset.pageSize) || 9;
+    let shown = pageSize;
+
+    function render() {
+      const team = filter?.value ?? '';
+      const dir = sort?.value === 'old' ? 1 : -1;
+      const matching = cards
+        .filter((c) => !team || c.dataset.team === team)
+        .sort((a, b) => dir * (Date.parse(a.dataset.date!) - Date.parse(b.dataset.date!)));
+      cards.forEach((c) => (c.hidden = true));
+      matching.forEach((c, i) => {
+        items.appendChild(c);
+        c.hidden = i >= shown;
+      });
+      more.hidden = matching.length <= shown;
+    }
+
+    filter?.addEventListener('change', () => { shown = pageSize; render(); });
+    sort?.addEventListener('change', render);
+    more.addEventListener('click', () => { shown += pageSize; render(); });
+    view?.addEventListener('click', () => {
+      const list = items.classList.toggle('list');
+      view.setAttribute('aria-pressed', String(list));
+      view.textContent = list ? 'Gallery view' : 'List view';
+    });
+    render();
+  });
+</script>

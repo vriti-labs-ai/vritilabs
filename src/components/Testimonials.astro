@@ -1,0 +1,96 @@
+---
+import HandBox from './HandBox.astro';
+import { getCollection } from 'astro:content';
+import { url } from '../lib/utils';
+
+interface Props { title?: string; }
+const { title = 'What learners say' } = Astro.props;
+
+const items = (await getCollection('testimonials')).sort((a, b) => a.data.order - b.data.order);
+const services = await getCollection('services');
+const programName = (id?: string) => services.find((s) => s.id === id)?.data.name;
+// Seconds per tile: keeps the scroll speed the same however many testimonials there are
+const duration = items.length * 8;
+---
+{items.length > 0 && (
+<section class="wrap testimonials" aria-labelledby="testimonials-h">
+  <h2 id="testimonials-h" class="section-title">{title}</h2>
+  <div class="viewport">
+    <div class="track" style={`--duration: ${duration}s`}>
+      {[0, 1].map((copy) => (
+        <ul class="set" aria-hidden={copy === 1 ? 'true' : undefined}>
+          {items.map((t, i) => (
+            <li class="item">
+              <HandBox seed={i + 21 + copy * 50}>
+                <figure>
+                  <span class="mark hand" aria-hidden="true">“</span>
+                  <blockquote>{t.data.quote}</blockquote>
+                  <figcaption>
+                    {t.data.image
+                      ? <img class="avatar" src={url(t.data.image)} alt="" width="56" height="56" loading="lazy" />
+                      : <span class="avatar initials" aria-hidden="true">{t.data.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>}
+                    <span class="who">
+                      <strong>{t.data.name}</strong>
+                      <span>{[t.data.role, t.data.context ?? programName(t.data.program?.id)].filter(Boolean).join(' · ')}</span>
+                      {t.data.source && <a class="src" href={t.data.source} target="_blank" rel="noopener" tabindex={copy === 1 ? -1 : undefined}>View original post ↗</a>}
+                    </span>
+                  </figcaption>
+                </figure>
+              </HandBox>
+            </li>
+          ))}
+        </ul>
+      ))}
+    </div>
+  </div>
+</section>
+)}
+
+<style>
+  .testimonials { padding-block: 40px 24px; }
+  .section-title { font-size: 28px; margin-bottom: 20px; }
+
+  .viewport {
+    overflow: hidden;
+    /* soft fade at both edges */
+    mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+  }
+  .track {
+    display: flex;
+    width: max-content;
+    animation: slide var(--duration) linear infinite;
+  }
+  .viewport:hover .track,
+  .viewport:focus-within .track { animation-play-state: paused; }
+
+  .set { display: flex; gap: 20px; padding: 4px 10px 4px 0; margin: 0; list-style: none; }
+  .item { width: min(360px, 80vw); flex: none; }
+  .item :global(.hand-box) { height: 100%; background: var(--paper-2); }
+
+  figure { margin: 0; display: flex; flex-direction: column; height: 100%; }
+  .mark { font-size: 56px; line-height: .6; color: var(--heading); height: 24px; }
+  blockquote { margin: 8px 0 20px; font-family: var(--serif); font-size: 18px; line-height: 1.5; flex: 1; }
+  figcaption { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+  .avatar {
+    width: 56px; height: 56px; flex: none;
+    border-radius: 50%; object-fit: cover;
+    border: 1.5px solid var(--ink);
+  }
+  .initials { display: grid; place-items: center; background: var(--tile-bg); font-family: var(--serif); font-size: 20px; }
+  .who { display: flex; flex-direction: column; gap: 2px; }
+  .who strong { font-weight: 500; }
+  .who span { color: var(--ink-soft); }
+  .src { color: var(--heading); font-size: 12px; margin-top: 2px; }
+
+  @keyframes slide {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* No motion: show a normal swipeable row instead */
+  @media (prefers-reduced-motion: reduce) {
+    .viewport { overflow-x: auto; mask-image: none; }
+    .track { animation: none; }
+    .set[aria-hidden] { display: none; }
+  }
+</style>

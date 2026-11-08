@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import Tiles from '../components/Tiles.astro';
+import FeaturedCarousel from '../components/FeaturedCarousel.astro';
+import PostGrid from '../components/PostGrid.astro';
+import HandRule from '../components/HandRule.astro';
+import { getPosts, getTeams, getTeamTiles } from '../lib/utils';
+
+const posts = await getPosts();
+const teams = await getTeams();
+const teamNames = Object.fromEntries(teams.map((t) => [t.id, t.data.name]));
+const tiles = await getTeamTiles();
+const featured = posts.filter((p) => p.data.featured).slice(0, 5);
+---
+<Base>
+  <section class="wrap intro">
+    <h1>Research at Vriti Labs</h1>
+    <p>We study how intelligent systems work, test where they break, and track how they change the world around us.</p>
+  </section>
+
+  <FeaturedCarousel posts={featured} teamNames={teamNames} />
+  <div class="wrap"><HandRule seed={3} /></div>
+  <Tiles title="Products & Services" tiles={tiles} />
+  <div class="wrap"><HandRule seed={11} /></div>
+  <PostGrid posts={posts} teamNames={teamNames} />
+</Base>
+
+<style>
+  .intro { padding-block: 48px 32px; }
+  .intro h1 { max-width: 16ch; font-size: clamp(40px, 6vw, 72px); }
+  .intro p { font-family: var(--serif); font-size: clamp(19px, 2vw, 23px); color: var(--ink-soft); margin: 20px 0 0; max-width: 40ch; }
+</style>

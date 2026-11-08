@@ -1,0 +1,276 @@
+---
+title: "Data is the agent: lessons from production agentic AI"
+summary: "From confidently wrong to reliably right in five rebuilds, from classic RAG to a sandboxed agent: what each step costs, and the routing pattern that gives agent-quality answers without agent prices."
+date: 2026-10-04
+team: agentic-ai
+featured: true
+image: drawings/context-funnel.svg
+imageAlt: "Documents falling into a funnel that narrows into a small box"
+---
+
+import HandFlow from '../../components/HandFlow.astro';
+
+> **In short:** an AI agent is only as reliable as what it gets to see. Here is how one assistant went from confidently wrong to reliably right in five rebuilds, what each step cost, and the simple routing pattern that gets agent-quality answers without paying agent prices for every question.
+
+It's 4:55 on a Friday. Your VP, laptop half-closed, types a question into the generative-AI product your team launched last month: *Which enterprise customers renewed late last year, also opened critical support tickets, and what did we promise them?* Three seconds later there's an answer: nicely formatted, two citations, very sure of itself.
+
+It's wrong. One of those customers never renewed at all, and the "promise" is a clause from a draft contract that nobody signed. *Nothing crashed. No alert fired.* You find out on Monday, from a message that starts with "quick question".
+
+So you open the logs, and the honest diagnosis is a bit deflating: the model was fine. It just never saw the right information.
+
+A model can only work with what's in its context window, and deciding what goes in there (and what stays out) is what people now call *context engineering*. Retrieval-augmented generation (RAG) is about grounding the agent in its data moat.
+
+This is not a small problem. In 2024 a Canadian tribunal held Air Canada liable for a refund policy its own chatbot had invented (*Moffatt v. Air Canada*). The airline argued, more or less, that the chatbot was responsible for itself. That didn't go well.
+
+## The scorecard
+
+Getting the answer right is only the first test. In an enterprise, an assistant is judged on six things at once:
+
+- **Reliability:** is it right?
+- **Cost** per question.
+- **Latency.**
+- **Observability:** can you see why it said that?
+- **Security:** can a document or a user make it leak, or act?
+- **Governance:** can you show an auditor what happened, and where the information came from?
+
+Keep that scorecard in mind. Every rebuild below improves some of it and quietly spends some of the rest.
+
+## What the model actually sees
+
+Here's what lands in the window when the agent answers: your instructions, the user's question, whatever the retriever found, any tool results, a little memory, maybe a skill. It all competes for one token budget, and something decides what makes the cut.
+
+The whole discipline fits in a few lines, at least on a good day:
+
+```python
+def build_context(question, budget=8_000):
+    parts = [SYSTEM_PROMPT, question]
+    for chunk in retrieve(question):                 # best first
+        if count_tokens(parts + [chunk.text]) > budget:
+            break                                    # stop before overflowing
+        parts.insert(-1, chunk.text)                 # evidence before the question
+    return "\n\n".join(parts)
+```
+
+Pretty much everything below is a better way of filling in that `for` loop.
+
+## Rebuild 1: classic RAG
+
+What launched was a good design, honestly. Chunk the documents, embed them, and at question time grab the closest five and paste them into the prompt. When a policy changes you update a document, not a model, and every answer comes with citations. The catch: the context is just whatever scored highest on similarity, and nobody checks it.
+
+<HandFlow
+  seed={41}
+  steps={['Documents', 'Chunk and embed', 'Vector index', 'Top-k search', 'Prompt and LLM', 'Answer with citations']}
+  caption="Classic RAG: whatever top-k returns is all the model gets."
+/>
+
+```python
+# Offline: build the index once
+chunks = split(load_documents("contracts/"), size=500, overlap=50)
+index.add([(c.id, embed(c.text)) for c in chunks])
+
+# Online: one search, one answer
+def answer(question):
+    hits = index.search(embed(question), k=5)
+    context = "\n\n".join(h.text for h in hits)
+    return llm(f"Answer only from this context:\n{context}\n\nQ: {question}")
+```
+
+Rerun Friday's question with tracing on and it's almost embarrassing. The top chunks are a renewals FAQ, a churn report, and a support ticket where someone had typed "critical" in the subject line. Not one of them names a customer. The model did exactly what it was asked to do, which was the problem. It's also the moment you realise the same path would happily pass along a prompt injection, or another team's documents.
+
+## Rebuild 2: fix search first (advanced RAG)
+
+Search was the obvious culprit, so that's where you start. Support agents type things like "SKU-4471", which keyword search (BM25) finds instantly and vector search somehow doesn't. Customers type "I want my money back", which only vector search connects to "refund". So you run both, merge the results, rerank and trim.
+
+One thing you didn't expect to matter: order. Models pay more attention to the start and end of a long context than to the middle (Liu et al., *Lost in the Middle*), so the best evidence goes first.
+
+<HandFlow
+  seed={47}
+  steps={['Question', 'Rewrite and filter', 'Keyword + vector search', 'Fuse and rerank', 'Prompt and LLM', 'Answer']}
+  caption="Advanced RAG: every stage is upgraded, but it is still one straight pass. No step looks back."
+/>
+
+```python
+from collections import defaultdict
+
+def rrf(result_lists, k=60):
+    """Reciprocal rank fusion: merge ranked lists of doc ids."""
+    scores = defaultdict(float)
+    for results in result_lists:
+        for rank, doc_id in enumerate(results, start=1):
+            scores[doc_id] += 1 / (k + rank)
+    return sorted(scores, key=scores.get, reverse=True)
+
+def retrieve(question, k=5):
+    queries = [question, *rewrite(question, n=2)]            # pre-retrieval
+    lists = []
+    for q in queries:
+        lists.append(bm25.search(q, k=50))                   # exact terms
+        lists.append(vector_index.search(embed(q), k=50))    # meaning
+    candidates = rrf(lists)[:30]                             # hybrid fusion
+    return reranker.rank(question, candidates)[:k]           # post-retrieval
+```
+
+It helps. The right customers show up now. But the "promise" still comes from that unsigned draft because, to be fair to the retriever, it really was the closest match for "what did we promise". You've added a lot of knobs, and you're still not sure which ones mattered.
+
+## Rebuild 3: teach it to say "I don't know" (self-correcting RAG)
+
+Next you give the model a veto. The idea comes from Self-RAG and Corrective RAG: a cheap grader checks each chunk before it goes in, and a second check compares the draft against its sources.
+
+<HandFlow
+  seed={53}
+  steps={['Retrieve', 'Relevant?', 'Generate', 'Grounded?', 'Answer']}
+  caption="Self-correcting RAG: either check can send the work back to rewrite the query or regenerate. Each check is an extra model call."
+/>
+
+```python
+def answer(question, max_attempts=3):
+    query = question
+    for _ in range(max_attempts):
+        chunks = [c for c in retrieve(query) if is_relevant(question, c)]  # grader 1
+        if not chunks:
+            query = rewrite(question)          # or fall back to web search
+            continue
+        draft = generate(question, chunks)
+        if is_grounded(draft, chunks):         # grader 2
+            return draft
+    return "I couldn't find a reliable answer."
+```
+
+This one catches the draft contract, drops the claim, and admits it found no signed commitment. Your VP likes that. Your latency graph doesn't. And the ticket data is still sitting in a database the index has never seen.
+
+## Rebuild 4: let it plan (agentic RAG)
+
+By now it's clear no single pipeline will answer the Friday question, because it needs the CRM, the ticketing system and the contracts. So you let the model plan. **Retrieval becomes one tool among several**, and the agent builds its own context as it goes. The annoying side effect is that the context keeps growing, so you spend more time than you'd like summarising old steps and throwing away tool results you've already used.
+
+<HandFlow
+  seed={59}
+  steps={['Plan', 'Call a tool', 'Observe', 'Repeat until enough', 'Critic checks draft', 'Answer with sources']}
+  caption="Agentic RAG: the model plans, picks tools (vector store, SQL warehouse, business APIs, web search, knowledge graph) and loops. Guardrails: step budgets, least-privilege tools, full traces, human approval for risky actions."
+/>
+
+```python
+TOOLS = {
+    "search_contracts": search_contracts,   # vector store
+    "query_crm":        query_crm,          # SQL warehouse
+    "search_tickets":   search_tickets,     # ticketing API
+}
+
+def agent(question, max_steps=10):
+    history = [{"role": "user", "content": question}]
+    for _ in range(max_steps):                               # step budget
+        step = llm.next_step(history, tools=TOOLS)           # plan
+        if step.is_final:
+            return critic.review(step.answer, history)
+        result = TOOLS[step.tool](**step.args)               # act
+        history.append(step.as_message())
+        history.append({"role": "tool", "content": result})  # observe
+    return "Stopped: step budget reached."
+```
+
+Roughly what a run looks like (illustrative):
+
+| Step | Agent's reasoning | Tool call |
+|---|---|---|
+| 1 | Find enterprise renewals signed after their due date | `query_crm(renewed_late=True, segment="enterprise")` |
+| 2 | Which of those opened critical tickets? | `search_tickets(accounts=[…], severity="critical")` |
+| 3 | What did we commit to? Signed contracts only | `search_contracts(accounts=[…], status="signed")` |
+| 4 | Every claim has a source | Final answer |
+
+And it works: right customers, right tickets, only signed commitments. Then the costs show up. Some questions take three calls, some take thirty, and you can't really predict which.
+
+**Security** also has a question for you: if a document can contain instructions, and the agent can take actions, what stops a document from taking actions?
+
+> **Rule of thumb:** use an agent only when a question truly spans systems or steps, and budget its steps like a contractor's hours.
+
+## Rebuild 5: skills and a secure harness
+
+Security's question is fair, and there's a second problem hiding behind it. The agent now does dozens of different jobs, and its system prompt has grown into a small novel. Worse, it has been running generated SQL with real credentials. Both problems turn out to have the same fix: load less, and keep the raw data out of the window entirely.
+
+**Skills are folders.** A surgeon doesn't look up anatomy mid-operation, and an agent shouldn't carry every procedure around all the time either. Each skill gets its own folder and a `SKILL.md`:
+
+```text
+skills/
+├── order-query/
+│   ├── SKILL.md
+│   └── scripts/top_orders.sql
+├── database/
+│   ├── SKILL.md
+│   └── reference/connection-rules.md
+└── data-knowledge/
+    ├── SKILL.md
+    └── reference/
+        ├── tables.md
+        └── columns.md
+```
+
+```markdown
+---
+name: order-query
+description: Answer questions about customer orders, such as quantities and dates.
+---
+# Order query
+1. Orders live in the SALES schema. Run queries through the database skill.
+2. Check table and column meanings in data-knowledge before writing SQL.
+3. Read-only: never run INSERT, UPDATE, DELETE or DDL.
+4. If "highest" is ambiguous (quantity or value?), ask the user.
+```
+
+**Progressive disclosure keeps the context small:**
+
+| Level | What the agent loads | When |
+|---|---|---|
+| 1 | Name and description (about 100 tokens per skill) | Always |
+| 2 | The full `SKILL.md` | When a request matches |
+| 3 | Scripts and reference files | Only when the instructions call for them |
+
+**Where skills run.** Each one gets a throwaway micro-VM (Firecracker or Kata Containers). It boots in about 125 ms, has no disk, can't wander off onto the network, and only ever sees credentials in memory. Plain Kubernetes pods weren't enough, because they share the host kernel. A versioned registry makes sure the skill that runs is the one someone actually reviewed.
+
+<HandFlow
+  seed={61}
+  steps={['Agent client', 'MCP server checks who asks', 'Per-user sandbox loads skills', 'Gateway: SQL only', 'Enterprise data', 'Results only']}
+  caption="Only the SQL leaves the sandbox, and the model never sees a credential. The gateway authenticates, logs, traces, caches and applies guardrails to every call."
+/>
+
+For a question like "which order has the highest quantity?", the MCP server checks who's asking, a fresh sandbox loads only the skills that person is allowed to use, and only the SQL goes out, through a gateway that logs, traces (with Langfuse), caches and checks every call. The model never sees a password.
+
+## So who won?
+
+On the Friday question, the agent, obviously. But fill in the scorecard from the start (rough judgement calls, not benchmarks) and the picture is more interesting:
+
+| | Classic RAG | Advanced RAG | Self-correcting RAG | Agentic RAG | Agent + skills harness |
+|---|---|---|---|---|---|
+| Reliability | Low | Better | Good | Best | Best |
+| Cost efficiency | High | Slides gently | Slides gently | Drops steeply | Still lower than classic |
+| Speed | High | Slides gently | Slides gently | Drops steeply | Still lower than classic |
+| Observability | High | Slides gently | Slides gently | Drops steeply | **Pulled back up** (gateway traces) |
+| Security | Good | Slides gently | Slides gently | Drops steeply | **Pulled back up** (sandbox, no credentials) |
+| Governance | High | Slides gently | Slides gently | Drops steeply | **Pulled back up** (skill registry) |
+
+Reliability is the line that goes up, and rightly so. Everything else slides: gently through the first three stages, then steeply once the model starts planning. That drop between self-correcting and agentic RAG is the real decision: **it's where you stop auditing a pipeline and start supervising a worker.**
+
+The skills harness doesn't make answers any more correct. What it does is pull three axes back up. The gateway traces every call (observability), the sandbox and the no-credentials rule limit what an injected sentence can do (security), and the skill registry tells you exactly which reviewed procedure ran (governance). Cost and speed stay below where you started; a micro-VM boots fast, but it's still another hop.
+
+## Which one should you build?
+
+Probably not the agent, at least not for everything. The Friday question needed one. "What's our refund window?" really doesn't, and sending it through an agent loop is like hiring a research team to read you a phone number. Most real traffic looks a lot more like the refund question.
+
+The pattern that works in practice is a **router**:
+
+| Question type | Path |
+|---|---|
+| Routine lookups (most traffic) | Fast advanced RAG |
+| Questions where silent errors are costly | Advanced RAG plus self-correction |
+| The minority that truly need planning across sources | Full agent loop, inside the skills harness |
+
+Whichever you pick, a few habits pay off every time:
+
+1. Retrieve only what answers the question.
+2. Put the best evidence first.
+3. Check it at the door.
+4. Budget tokens and steps.
+5. Keep raw data and credentials out of the window.
+6. Measure it, even crudely, with a small test set and a trace of every step.
+
+The following Friday, at 4:55 again, your VP asks the same question. The answer takes a bit longer this time. It names the right customers, quotes only signed contracts, and links to a trace of every step. A minute later someone asks about the refund window and gets an answer before they've finished their coffee.
+
+It's the same model as the first Friday. The only thing that changed is what it got to see.

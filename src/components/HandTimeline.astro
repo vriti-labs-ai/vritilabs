@@ -1,0 +1,39 @@
+---
+// Hand-drawn timeline (Rough.js at build time). Tags are tilted like sticky labels.
+import rough from 'roughjs';
+interface Item { year: string; label: string; highlight?: boolean; }
+interface Props { items: Item[]; seed?: number; caption?: string; }
+const { items, seed = 5, caption } = Astro.props;
+
+const W = 1000, H = 220, Y = 110, PAD = 70;
+const gen = rough.generator();
+const step = items.length > 1 ? (W - PAD * 2) / (items.length - 1) : 0;
+const axis = gen.toPaths(gen.line(20, Y, W - 20, Y, { seed, roughness: 1.2, bowing: 1.5, strokeWidth: 1.4 }));
+const tags = items.map((it, i) => {
+  const x = PAD + i * step;
+  const up = i % 2 === 1;
+  const rect = gen.rectangle(-42, -14, 84, 28, {
+    seed: seed + i + 1, roughness: 1.1, strokeWidth: 1.2,
+    fill: it.highlight ? 'var(--tile-bg)' : undefined, fillStyle: 'solid',
+  });
+  return { ...it, x, up, paths: gen.toPaths(rect) };
+});
+---
+<figure class="hand-timeline">
+  <div class="scroll">
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={items.map((i) => `${i.year}: ${i.label}`).join(', ')}>
+      {axis.map((p) => <path d={p.d} fill="none" stroke="currentColor" stroke-width="1.4" />)}
+      {tags.map((t) => (
+        <g>
+          <g transform={`translate(${t.x} ${t.up ? Y - 26 : Y + 26}) rotate(-45)`}>
+            {t.paths.map((p) => <path d={p.d} fill={p.fill ?? 'none'} stroke={p.stroke === 'none' ? 'none' : 'currentColor'} stroke-width="1.2" />)}
+            <text x="0" y="5" text-anchor="middle" class="year">{t.year}</text>
+          </g>
+          <text x={t.x} y={t.up ? Y + 46 : Y - 50} text-anchor="middle" class="label">{t.label}</text>
+        </g>
+      ))}
+    </svg>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+

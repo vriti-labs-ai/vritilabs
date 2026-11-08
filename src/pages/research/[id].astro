@@ -1,0 +1,58 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import HandRule from '../../components/HandRule.astro';
+import { getPosts, getTeams, url, formatDate } from '../../lib/utils';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const teams = await getTeams();
+const team = teams.find((t) => t.id === post.data.team.id);
+const { Content } = await render(post);
+const { title, summary, date, image, imageAlt, artist } = post.data;
+---
+<Base title={title} description={summary}>
+  <article class="wrap post">
+    <header>
+      <p class="eyebrow">
+        <a href={url(`solutions/${post.data.team.id}/`)}>{team?.data.name}</a> · <time datetime={date.toISOString()}>{formatDate(date)}</time>
+      </p>
+      <h1>{title}</h1>
+      <p class="dek">{summary}</p>
+    </header>
+    {image && (
+      <figure>
+        <img src={url(image)} alt={imageAlt} />
+      </figure>
+    )}
+    <div class="prose"><Content /></div>
+    <HandRule seed={date.getDate()} />
+    <p class="back"><a href={url('')}>← All research</a></p>
+  </article>
+</Base>
+
+<style>
+  .post { padding-block: 40px; }
+  header { max-width: 820px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; }
+  h1 { font-size: clamp(36px, 5vw, 60px); }
+  .dek { font-family: var(--serif); font-size: 21px; color: var(--ink-soft); margin: 0; }
+  figure { margin: 40px auto; max-width: 1000px; }
+  figure img { width: 100%; border-radius: var(--radius); }
+  figcaption { margin-top: 8px; color: var(--ink-soft); text-align: right; }
+  .prose { max-width: 680px; margin-inline: auto; font-family: var(--serif); font-size: 20px; line-height: 1.65; padding-bottom: 40px; }
+  .prose :global(h2) { font-size: 30px; margin: 1.6em 0 .5em; }
+  .prose :global(a) { text-underline-offset: 3px; }
+  .prose :global(blockquote) { border-left: 2px solid var(--ink); margin: 1.5em 0; padding-left: 1em; color: var(--ink-soft); }
+  .prose :global(table) { width: 100%; border-collapse: collapse; font-family: var(--sans); font-size: 15px; line-height: 1.45; margin: 1.6em 0; display: block; overflow-x: auto; }
+  .prose :global(th) { text-align: left; font-weight: 500; color: var(--heading); border-bottom: 1.5px solid var(--ink); padding: 8px 12px 8px 0; }
+  .prose :global(td) { border-bottom: 1px solid var(--line); padding: 10px 12px 10px 0; vertical-align: top; }
+  .prose :global(pre) { font-size: 14px; line-height: 1.55; padding: 18px 20px; border-radius: var(--radius); overflow-x: auto; margin: 1.6em 0; }
+  .prose :global(:not(pre) > code) { font-size: .85em; background: var(--paper-2); padding: 1px 6px; border-radius: 4px; }
+  .prose :global(h3) { font-size: 22px; margin: 1.4em 0 .3em; }
+  .prose :global(li) { margin: .3em 0; }
+  .back { max-width: 680px; margin: 24px auto 0; }
+</style>

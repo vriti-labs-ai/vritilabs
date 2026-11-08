@@ -1,0 +1,29 @@
+---
+import { url } from '../lib/utils';
+const links = [
+  { href: url('education/'), label: 'Educational Services' },
+  { href: url(''), label: 'Research' },
+  { href: url('solutions/'), label: 'Products & Services' },
+  { href: url('about/'), label: 'About' },
+  { href: url('contact/'), label: 'Contact' },
+];
+---
+<header class="wrap site-header">
+  <a class="logo" href={url('')}>Vriti<span class="hand">labs</span></a>
+  <nav aria-label="Primary">
+    {links.map((l) => <a href={l.href}>{l.label}</a>)}
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px 24px; flex-wrap: wrap;
+    padding-block: 20px;
+  }
+  .logo { font-family: var(--serif); font-size: 24px; text-decoration: none; }
+  .logo .hand { margin-left: 2px; color: var(--ink-soft); }
+  nav { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 15px; }
+  nav a { text-decoration: none; }
+  nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+</style>

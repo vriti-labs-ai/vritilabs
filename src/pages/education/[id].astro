@@ -1,0 +1,32 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import HandRule from '../../components/HandRule.astro';
+import { getServices, url } from '../../lib/utils';
+
+export async function getStaticPaths() {
+  const services = await getServices();
+  return services.map((service) => ({ params: { id: service.id }, props: { service } }));
+}
+const { service } = Astro.props;
+const { Content } = await render(service);
+const { name, description, format, level } = service.data;
+const facts = [format, level].filter(Boolean);
+---
+<Base title={name} description={description}>
+  <article class="wrap svc">
+    <p class="eyebrow"><a href={url('education/')}>Educational Services</a>{facts.length > 0 && ` · ${facts.join(' · ')}`}</p>
+    <h1>{name}</h1>
+    <p class="dek">{description}</p>
+    <HandRule seed={name.length} />
+    <div class="prose"><Content /></div>
+    <p><a href={url('education/')}>← All programs</a></p>
+  </article>
+</Base>
+<style>
+  .svc { padding-block: 48px; max-width: 760px; }
+  h1 { font-size: clamp(36px, 5vw, 60px); margin: 8px 0 16px; }
+  .dek { font-family: var(--serif); font-size: 21px; color: var(--ink-soft); margin: 0 0 32px; }
+  .prose { font-family: var(--serif); font-size: 19px; line-height: 1.65; padding-block: 16px 24px; }
+  .prose :global(h2) { font-size: 28px; margin: 1.4em 0 .4em; }
+</style>

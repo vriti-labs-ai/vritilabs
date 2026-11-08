@@ -1,0 +1,44 @@
+---
+import HandBox from './HandBox.astro';
+export interface Tile { href: string; name: string; description: string; meta?: string; tags?: string[]; }
+interface Props { title: string; tiles: Tile[]; headingLevel?: 'h1' | 'h2'; }
+const { title, tiles, headingLevel: H = 'h2' } = Astro.props;
+const hid = `tiles-${title.toLowerCase().replace(/\W+/g, '-')}`;
+---
+<section class="wrap tiles" aria-labelledby={hid}>
+  <H id={hid} class:list={['section-title', { big: H === 'h1' }]}>{title}</H>
+  <div class="grid">
+    {tiles.map((t, i) => (
+      <a class="tile" href={t.href}>
+        <HandBox seed={i + 7}>
+          <div class="row">
+            <h3>{t.name}</h3>
+            {t.meta && <span class="meta">{t.meta}</span>}
+          </div>
+          <p>{t.description}</p>
+          {t.tags && t.tags.length > 0 && (
+            <ul class="tags" aria-label="Includes">
+              {t.tags.map((tag) => <li>{tag}</li>)}
+            </ul>
+          )}
+        </HandBox>
+      </a>
+    ))}
+  </div>
+</section>
+
+<style>
+  .tiles { padding-block: 32px; }
+  .section-title { font-size: 28px; margin-bottom: 20px; }
+  .section-title.big { font-size: clamp(36px, 5vw, 60px); margin-bottom: 28px; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+  .tile { text-decoration: none; display: block; }
+  .tile :global(.hand-box) { height: 100%; background: var(--tile-bg); transition: background .15s; }
+  .tile:hover :global(.hand-box) { background: var(--tile-bg-hover); }
+  .row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
+  h3 { font-size: 22px; }
+  .meta { font-size: 13px; color: var(--ink); white-space: nowrap; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 14px 0 0; padding: 0; }
+  .tags li { font-size: 12px; border: 1px solid var(--ink); border-radius: 999px; padding: 2px 10px; background: var(--paper); }
+  p { margin: 10px 0 0; color: var(--ink); font-size: 14px; }
+</style>

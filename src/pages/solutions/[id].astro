@@ -1,0 +1,38 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostGrid from '../../components/PostGrid.astro';
+import Tiles from '../../components/Tiles.astro';
+import { getPosts, getTeams, getTeamTiles, withChildren, url } from '../../lib/utils';
+
+export async function getStaticPaths() {
+  const teams = await getTeams();
+  return teams.map((team) => ({ params: { id: team.id }, props: { team } }));
+}
+const { team } = Astro.props;
+const teams = await getTeams();
+const teamNames = Object.fromEntries(teams.map((t) => [t.id, t.data.name]));
+const parent = teams.find((t) => t.id === team.data.parent?.id);
+const ids = withChildren(team.id, teams);
+const posts = (await getPosts()).filter((p) => ids.includes(p.data.team.id));
+const subTiles = await getTeamTiles(team.id);
+---
+<Base title={team.data.name} description={team.data.description}>
+  <section class="wrap head">
+    <p class="eyebrow">
+      <a href={url('solutions/')}>Products &amp; Services</a>
+      {parent && <> · <a href={url(`solutions/${parent.id}/`)}>{parent.data.name}</a></>}
+    </p>
+    <h1>{team.data.name}</h1>
+    <p class="lede">{team.data.description}</p>
+  </section>
+  {subTiles.length > 0 && <Tiles title="Focus areas" tiles={subTiles} />}
+  {posts.length > 0
+    ? <PostGrid posts={posts} teamNames={teamNames} showFilters={false} />
+    : <section class="wrap empty"><p>Research and case studies for {team.data.name} are coming soon.</p></section>}
+</Base>
+<style>
+  .head { padding-block: 48px 8px; }
+  h1 { font-size: clamp(36px, 5vw, 60px); margin-top: 8px; }
+  .lede { font-family: var(--serif); font-size: 20px; color: var(--ink-soft); max-width: 50ch; }
+  .empty { padding-block: 24px 48px; font-family: var(--serif); font-size: 19px; color: var(--ink-soft); }
+</style>

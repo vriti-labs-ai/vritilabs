@@ -1,0 +1,140 @@
+---
+title: "Agentic AI: the economics of autonomy"
+summary: "From LLMs in 2022 to agentic AI in 2026: how the pieces came together, where the real moats are, and why return on investment is still the hardest question."
+date: 2026-11-06
+team: agentic-ai
+featured: true
+image: drawings/agentic-economics.svg
+imageAlt: "A stack of coins beside a loop of three connected boxes"
+artist: Vriti Labs studio
+---
+
+import HandTimeline from '../../components/HandTimeline.astro';
+import HandFlow from '../../components/HandFlow.astro';
+import HandSum from '../../components/HandSum.astro';
+
+*This essay is adapted from an expert session given to the Consulting Club, DMSIE, IIT (ISM) Dhanbad.*
+
+Agentic AI is easy to demo and hard to pay for. This piece walks through how we got here, what actually gives a business an edge, and the questions anyone deploying autonomous systems should ask before they ask "how autonomous can we make it?"
+
+## 1. The past: one model per decision
+
+Before foundation models, every useful prediction came from its own pipeline. A team would engineer the data, hand-craft features, choose which ones mattered, train a descriptive or predictive model, deploy it, and then keep watching it drift.
+
+<HandFlow
+  steps={['Data engineering', 'Feature engineering', 'Feature selection', 'Predictive models', 'Deployment', 'Observe, adjust & evolve']}
+  caption="The classic data-science lifecycle: every new question meant running this loop again."
+/>
+
+Deep learning removed much of the feature work: data went into a neural network and decisions came out. But it was still one model per task, trained on one kind of data.
+
+## 2. The consolidation of text
+
+Between 2022 and 2026, language AI collapsed many separate techniques into a single stack.
+
+<HandTimeline
+  items={[
+    { year: '2022', label: 'LLM' },
+    { year: '2023', label: 'RAG' },
+    { year: '2024', label: 'Tool calling' },
+    { year: '2025', label: 'Reasoning models' },
+    { year: '2026', label: 'Agentic AI', highlight: true },
+  ]}
+  caption="Text AI, 2022–2026."
+/>
+
+**2022: large language models.** Whole chapters of a natural-language-processing textbook (parsing, semantic role labelling, information extraction, word-sense disambiguation) were absorbed into one model. At its core, that model does something simple: given "Once upon a time, there was…", it predicts the most likely next word, again and again.
+
+**2023: retrieval-augmented generation (RAG).** Models were connected to a company's own documents so answers could be grounded in facts the model was never trained on.
+
+**2024: tool calling.** Models learned to call APIs, query databases and run functions instead of only producing text.
+
+**2025: reasoning models.** Models learned to plan and check their own work before answering.
+
+**2026: agentic AI.** Put together, these give a system that can pursue a goal over many steps:
+
+<HandSum terms={['LLM', 'Reasoning', '<em>Programmatic</em><br/>tool calling']} />
+
+The newest ingredient is *programmatic* tool calling. Instead of calling one tool at a time, the model writes code that orchestrates many tools. That makes agents faster and cheaper, and much harder to supervise.
+
+## 3. The consolidation of vision
+
+Visual AI followed a longer arc.
+
+<HandTimeline
+  seed={17}
+  items={[
+    { year: '2012', label: 'CNN (AlexNet)' },
+    { year: '2016', label: 'RL (AlphaGo)' },
+    { year: '2026', label: 'World models', highlight: true },
+  ]}
+  caption="Visual AI, 2012–2026."
+/>
+
+Convolutional neural networks taught machines to see. Reinforcement learning taught them to act: an **agent** takes an action in an **environment**, then observes the new state and a reward. World models now combine the two. It helps to separate them into three kinds:
+
+- **Renderers** turn a state into something a human can look at. They are optimised for visual fidelity, not physical correctness, so they can produce a beautiful clip of a bouncing ball that quietly breaks the laws of physics.
+- **Simulators** produce structured, inspectable state (geometry, physics, dynamics) that holds up under scrutiny. They are the least glamorous and arguably the most important: you can render a convincing image from a good simulation, but you cannot recover a good simulation from a rendered image.
+- **Planners** take an observation and a goal and output a sequence of actions, closing the loop back to behaviour. This is the domain of vision-language-action models.
+
+## 4. What is your data moat?
+
+If everyone can rent the same models, the advantage moves to what only you have.
+
+| Moat type | What it is | Examples |
+|---|---|---|
+| Enterprise data | Application data | APIs, databases, documents, events |
+| Institutional knowledge | Domain expertise such as legal or banking | A specific insurance form and how it is filled in |
+| Procedural knowledge | Your unique recipe | Your way of calculating churn; the steps to an EBITDA score |
+| Workflows | Specialised processes | Claims processing; car manufacturing lines |
+| Layouts | Physical spaces such as homes and warehouses | Inventory placement; navigation for embodied AI |
+
+The further down this table you go, the harder the moat is to copy, and the more it matters for agents that act in the physical world.
+
+## 5. Hero use cases
+
+A few domains already show what autonomy is worth:
+
+- **Software.** Coding assistants have moved from autocomplete, to chat, to agents that take a task, edit files, run tests and open a pull request. It is the most widely adopted generative-AI use today, and it still needs review like a teammate's pull request.
+- **Science and materials.** AI acts as a discovery engine: instead of testing candidates one by one, models screen millions of possibilities and hand scientists a short list. Protein-structure prediction and materials discovery are the best-known examples. A prediction is still not a product; lab testing remains the bottleneck.
+- **Autonomous driving and simulation.** Rare, dangerous events almost never appear in real driving data, so world models generate them from a prompt. A driving system can then practise on billions of simulated miles. The open question: photorealistic is not the same as physically accurate, so who checks the simulator?
+- **Autonomous mobility in unstructured traffic.** Reinforcement learning is being used to negotiate unpredictable on-road and off-road conditions, with mixed traffic, animals and unmarked roads.
+
+## 6. Agency and its cost
+
+Autonomy is not a switch; it is a dial. One useful framing, from the survey *Data Agents: Levels, State of the Art, and Open Problems*, describes six levels:
+
+| Level | Name | Who is in charge |
+|---|---|---|
+| 0 | No autonomy | The human works alone |
+| 1 | Assistance | The human integrates; the agent responds |
+| 2 | Partial autonomy | The human orchestrates; the agent executes procedures |
+| 3 | Conditional autonomy | The agent acts; the human supervises |
+| 4 | High autonomy | The agent is proactive; the human delegates and looks on |
+| 5 | Full autonomy | The agent is generative; no human in the loop |
+
+Each step up the dial changes the trade-offs. Moving from classic RAG towards agentic RAG can improve reliability, but it shifts cost, latency, observability, security and governance at the same time. You do not get more autonomy for free.
+
+## 7. Awesome, but show me the ROI
+
+Five reasons the return on investment is harder than the demo suggests:
+
+1. **Cost economics are prohibitive: the Jevons paradox.** As each AI call gets cheaper, we use so many more of them that total spend goes up, not down.
+2. **Value alignment is not perfect.** Agents optimise what we specify, which is rarely exactly what we want.
+3. **Security isolation is in its infancy.** An agent that can call tools can also misuse them, or be tricked into doing so.
+4. **Organisational behaviour is absent.** Real teams create value through coordination, specialisation and trust. A group of agents has none of that by default, and output per worker depends heavily on how a team is organised.
+5. **Human decision-making is nuanced.** Much of what matters in a decision is context that never makes it into the data.
+
+## 8. Where do I fit in?
+
+For anyone building a career alongside these systems:
+
+1. **Be the data expert and steward.** Someone has to own the moat.
+2. **Everything is optimisation.** Learn to frame problems as objectives, constraints and trade-offs.
+3. **Decision science.** Turn model outputs into decisions people can defend.
+4. **Evaluations.** Measuring what an agent really does, and where it fails, is becoming a discipline of its own.
+5. **Domain expertise: find your niche.** Models are general; value is specific.
+6. **Embodied intelligence.** Agents are leaving the screen for robots and vehicles.
+7. **Spatial intelligence.** Understanding layouts, geometry and physical space is the next frontier for world models.
+
+The future is not just about building smarter systems, but about understanding how to make them work smarter.

@@ -1,0 +1,76 @@
+/* ---------- Design tokens ---------- */
+:root {
+  --paper: #efead5;
+  --paper-2: #e5dec4;
+  --ink: #1a1915;
+  --ink-soft: #5c5a52;
+  --line: #d6ceb3;
+
+  --heading: #2a5019;
+  --tile-bg: #c8d5bf;
+  --tile-bg-hover: #b8c8ad;
+
+  /* Illustration tints — keep the palette small */
+  --tint-rose: #e9c9c1;
+  --tint-sage: #c8d5bf;
+  --tint-sky: #c4d4e0;
+  --tint-sand: #e8d9b5;
+
+  --serif: 'Newsreader', 'Iowan Old Style', Georgia, serif;
+  --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --hand: 'Caveat', 'Bradley Hand', cursive;
+
+  --max: 1200px;
+  --gutter: clamp(16px, 4vw, 40px);
+  --radius: 6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { background: var(--paper); color: var(--ink); }
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+  background: var(--paper);
+  /* subtle paper grain */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+
+.wrap {
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+h1, h2, h3 { font-family: var(--serif); font-weight: 400; line-height: 1.15; margin: 0; color: var(--heading); }
+
+.eyebrow {
+  font-size: 13px;
+  letter-spacing: .02em;
+  color: var(--ink-soft);
+}
+.eyebrow a { text-decoration: none; }
+.eyebrow a:hover { text-decoration: underline; }
+
+.btn {
+  font: inherit;
+  font-size: 14px;
+  background: transparent;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+.btn:hover, .btn[aria-pressed='true'] { background: var(--ink); color: var(--paper); }
+
+.hand { font-family: var(--hand); font-size: 1.15em; }
+
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+[hidden] { display: none !important; }

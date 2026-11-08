@@ -1,0 +1,69 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { url, formatDate } from '../lib/utils';
+interface Props { posts: CollectionEntry<'posts'>[]; teamNames: Record<string, string>; }
+const { posts, teamNames } = Astro.props;
+const total = String(posts.length).padStart(2, '0');
+---
+{posts.length > 0 && (
+<section class="wrap featured" aria-label="Featured research" data-carousel>
+  <div class="track" data-track>
+    {posts.map((p) => (
+      <article class="slide">
+        <a class="media" href={url(`research/${p.id}/`)} tabindex="-1" aria-hidden="true">
+          {p.data.image && <img src={url(p.data.image)} alt={p.data.imageAlt} />}
+        </a>
+        <div class="text">
+          <p class="eyebrow">{teamNames[p.data.team.id]} · {formatDate(p.data.date)}</p>
+          <h2><a href={url(`research/${p.id}/`)}>{p.data.title}</a></h2>
+          <p class="summary">{p.data.summary}</p>
+        </div>
+      </article>
+    ))}
+  </div>
+  <div class="controls">
+    <span class="counter"><span data-current>01</span> / {total}</span>
+    <button class="btn" data-prev aria-label="Previous">←</button>
+    <button class="btn" data-next aria-label="Next">→</button>
+  </div>
+</section>
+)}
+
+<style>
+  .featured { padding-block: 24px 48px; }
+  .track {
+    display: grid; grid-auto-flow: column; grid-auto-columns: 100%;
+    overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  }
+  .track::-webkit-scrollbar { display: none; }
+  .slide {
+    scroll-snap-align: start;
+    display: grid; gap: 32px; align-items: center;
+    grid-template-columns: 1.3fr 1fr;
+  }
+  .media { display: block; aspect-ratio: 16 / 10; border-radius: var(--radius); overflow: hidden; background: var(--paper-2); }
+  .media img { width: 100%; height: 100%; object-fit: cover; }
+  .text { display: flex; flex-direction: column; gap: 12px; }
+  h2 { font-size: clamp(28px, 4vw, 44px); }
+  h2 a { text-decoration: none; }
+  h2 a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; }
+  .summary { margin: 0; color: var(--ink-soft); font-size: 17px; }
+  .controls { display: flex; align-items: center; gap: 8px; margin-top: 20px; }
+  .counter { font-size: 14px; color: var(--ink-soft); margin-right: auto; font-variant-numeric: tabular-nums; }
+  @media (max-width: 760px) { .slide { grid-template-columns: 1fr; gap: 16px; } }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((root) => {
+    const track = root.querySelector<HTMLElement>('[data-track]')!;
+    const current = root.querySelector<HTMLElement>('[data-current]')!;
+    const count = track.children.length;
+    const index = () => Math.round(track.scrollLeft / track.clientWidth);
+    const go = (i: number) => track.scrollTo({ left: ((i + count) % count) * track.clientWidth, behavior: 'smooth' });
+    root.querySelector('[data-prev]')!.addEventListener('click', () => go(index() - 1));
+    root.querySelector('[data-next]')!.addEventListener('click', () => go(index() + 1));
+    track.addEventListener('scroll', () => {
+      current.textContent = String(index() + 1).padStart(2, '0');
+    }, { passive: true });
+  });
+</script>

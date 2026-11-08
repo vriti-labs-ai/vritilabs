@@ -1,0 +1,78 @@
+---
+import Base from '../layouts/Base.astro';
+import HandBox from '../components/HandBox.astro';
+import HandRule from '../components/HandRule.astro';
+
+const domains = [
+  { name: 'Supply Chain', note: 'Forecasting, inventory and logistics decisions.' },
+  { name: 'Smarter Cities (IoT)', note: 'Sensor data and connected infrastructure.' },
+  { name: 'Insurance Fraud', note: 'Detecting fraud in claims and underwriting.' },
+  { name: 'Decision Making', note: 'Turning models into decisions people can defend.' },
+];
+
+const alumni = ['Indian Statistical Institute', 'BITS Pilani', 'IIT'];
+---
+<Base title="About" description="Vriti Labs is backed by professionals with a combined 30 years of experience in data science and AI.">
+  <section class="wrap intro">
+    <p class="eyebrow">About</p>
+    <h1>About Vriti Labs</h1>
+    <p class="lede">
+      Vriti Labs is backed by professionals with a combined 30 years of experience in data science and AI.
+    </p>
+  </section>
+
+  <section class="wrap stat-row">
+    <div class="stat">
+      <span class="num">30</span>
+      <span class="label">years of combined experience in data science and AI</span>
+    </div>
+  </section>
+
+  <div class="wrap"><HandRule seed={81} /></div>
+
+  <section class="wrap block" aria-labelledby="domains-h">
+    <h2 id="domains-h">Where our experience comes from</h2>
+    <ul class="domains">
+      {domains.map((d, i) => (
+        <li>
+          <HandBox seed={i + 90}>
+            <h3>{d.name}</h3>
+            <p>{d.note}</p>
+          </HandBox>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="wrap block" aria-labelledby="alumni-h">
+    <h2 id="alumni-h">Alumni of</h2>
+    <ul class="alumni">
+      {alumni.map((a) => <li>{a}</li>)}
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .intro { padding-block: 48px 8px; }
+  h1 { font-size: clamp(40px, 6vw, 72px); margin-top: 8px; }
+  .lede { font-family: var(--serif); font-size: clamp(20px, 2.2vw, 25px); color: var(--ink-soft); max-width: 36ch; margin: 20px 0 0; }
+
+  .stat-row { padding-block: 32px 40px; }
+  .stat { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 20px; }
+  .num { font-family: var(--serif); font-size: clamp(72px, 12vw, 140px); line-height: 1; color: var(--heading); }
+  .stat .label { font-size: 16px; color: var(--ink-soft); max-width: 22ch; }
+
+  .block { padding-block: 32px; }
+  h2 { font-size: 28px; margin-bottom: 20px; }
+
+  .domains { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .domains li :global(.hand-box) { height: 100%; background: var(--tile-bg); }
+  .domains h3 { font-size: 22px; }
+  .domains p { margin: 8px 0 0; font-size: 14px; }
+
+  .alumni { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+  .alumni li {
+    font-family: var(--serif); font-size: 20px;
+    border: 1.5px solid var(--ink); border-radius: 999px; padding: 8px 20px;
+  }
+</style>

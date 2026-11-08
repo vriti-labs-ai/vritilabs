@@ -1,0 +1,29 @@
+---
+import Base from '../../layouts/Base.astro';
+import Tiles from '../../components/Tiles.astro';
+import Testimonials from '../../components/Testimonials.astro';
+import Talks from '../../components/Talks.astro';
+import { getServices, url } from '../../lib/utils';
+const services = await getServices();
+const tiles = services.map((s) => ({
+  href: url(`education/${s.id}/`),
+  name: s.data.name,
+  description: s.data.description,
+  meta: s.data.format,
+}));
+---
+<Base title="Educational Services" description="Courses and programs from Vriti Labs.">
+  <section class="wrap intro">
+    <p class="eyebrow">Learn with us</p>
+    <h1>Educational Services</h1>
+    <p class="lede">Hands-on programs taught by the people doing the research.</p>
+  </section>
+  <Tiles title="Programs" tiles={tiles} />
+  <Testimonials />
+  <Talks />
+</Base>
+<style>
+  .intro { padding-block: 48px 8px; }
+  h1 { font-size: clamp(40px, 6vw, 72px); margin-top: 8px; }
+  .lede { font-family: var(--serif); font-size: clamp(19px, 2vw, 23px); color: var(--ink-soft); max-width: 40ch; margin: 20px 0 0; }
+</style>

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "iit-ism-thanks",
+    "order": 0,
+    "name": "Consulting Club, DMSIE",
+    "role": "IIT (ISM) Dhanbad",
+    "context": "Expert session: Agentic AI, Economics of Autonomy",
+    "source": "https://www.linkedin.com/feed/update/urn:li:activity:7524533295024484353/",
+    "quote": "A heartfelt thank you … for sharing his industry experience, practical insights and perspectives."
+  },
+  {
+    "id": "iit-ism-future",
+    "order": 0.5,
+    "name": "Consulting Club, DMSIE",
+    "role": "IIT (ISM) Dhanbad",
+    "context": "Expert session: Agentic AI, Economics of Autonomy",
+    "source": "https://www.linkedin.com/feed/update/urn:li:activity:7524533295024484353/",
+    "quote": "The future is not just about building smarter systems, but understanding how to make them work smarter."
+  },
+  {
+    "id": "t1",
+    "order": 1,
+    "program": "robotics",
+    "name": "Placeholder Name",
+    "role": "Mechanical engineer",
+    "quote": "By week three our arm was picking up objects it had never seen. I finally understand the full loop from sensor to motor.",
+    "image": "people/placeholder-1.svg"
+  },
+  {
+    "id": "t3",
+    "order": 3,
+    "program": "evaluations",
+    "name": "Placeholder Name",
+    "role": "ML lead",
+    "quote": "We rebuilt our whole eval suite after this workshop. Our benchmark scores went down and our confidence went up.",
+    "image": "people/placeholder-3.svg"
+  },
+  {
+    "id": "t4",
+    "order": 4,
+    "program": "robotics",
+    "name": "Placeholder Name",
+    "role": "Graduate student",
+    "quote": "Small cohort, real hardware, and mentors who actually do this work every day. Worth every hour.",
+    "image": "people/placeholder-4.svg"
+  }
+]

@@ -1,0 +1,233 @@
+---
+import Base from '../layouts/Base.astro';
+import HandBox from '../components/HandBox.astro';
+
+// Address split at build time so simple scrapers don't find it in the HTML.
+const user = 'contact';
+const domain = 'vritilabs.com';
+
+// Optional: a Web3Forms access key (public by design; it can only send mail to
+// the address it was created for). Without it, the form opens the visitor's
+// own mail app instead and nothing is sent to any server.
+const formKey = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? '';
+
+const topics = ['Educational Services', 'Products & Services', 'Research', 'Talks & sessions', 'Something else'];
+---
+<Base title="Contact us" description="Get in touch with Vriti Labs.">
+  <section class="wrap intro">
+    <p class="eyebrow">Contact</p>
+    <h1>Contact us</h1>
+    <p class="lede">Questions about a program, a collaboration or our research? Send us a note and we'll get back to you.</p>
+    <p class="direct">
+      Or email us directly:{' '}
+      <a data-mail data-u={user} data-d={domain} href="#">{user} [at] {domain.replace('.', ' [dot] ')}</a>
+    </p>
+  </section>
+
+  <section class="wrap form-wrap">
+    <HandBox seed={120}>
+      <form id="contact-form" novalidate data-key={formKey} data-u={user} data-d={domain}>
+        <div class="row">
+          <label>
+            <span>Name</span>
+            <input name="name" type="text" required maxlength="100" autocomplete="name" />
+          </label>
+          <label>
+            <span>Email</span>
+            <input name="email" type="email" required maxlength="200" autocomplete="email" />
+          </label>
+        </div>
+        <div class="row">
+          <label>
+            <span>Organisation <em>(optional)</em></span>
+            <input name="organisation" type="text" maxlength="150" autocomplete="organization" />
+          </label>
+          <label>
+            <span>Topic</span>
+            <select name="topic" required>
+              {topics.map((t) => <option value={t}>{t}</option>)}
+            </select>
+          </label>
+        </div>
+        <label>
+          <span>Message</span>
+          <textarea name="message" required minlength="10" maxlength="3000" rows="7"></textarea>
+          <small class="count" aria-live="polite"><span data-count>0</span> / 3000</small>
+        </label>
+
+        <!-- Honeypot: hidden from people, irresistible to bots. Must stay empty. -->
+        <div class="hp" aria-hidden="true">
+          <label>Leave this empty <input name="botcheck" type="text" tabindex="-1" autocomplete="off" /></label>
+        </div>
+
+        <div class="actions">
+          <button class="btn send" type="submit">Send message</button>
+          <p class="status" role="status" aria-live="polite" data-status></p>
+        </div>
+        <p class="fine">
+          {formKey
+            ? 'We use your details only to reply to you. They are not stored on this website.'
+            : 'Sending opens your email app with the message ready to go. Nothing is stored on this website.'}
+        </p>
+      </form>
+    </HandBox>
+  </section>
+</Base>
+
+<style>
+  .intro { padding-block: 48px 8px; }
+  h1 { font-size: clamp(40px, 6vw, 72px); margin-top: 8px; }
+  .lede { font-family: var(--serif); font-size: clamp(19px, 2vw, 23px); color: var(--ink-soft); max-width: 44ch; margin: 20px 0 0; }
+  .direct { margin: 16px 0 0; font-size: 15px; }
+  .direct a { color: var(--heading); }
+
+  .form-wrap { padding-block: 32px 48px; }
+  .form-wrap :global(.hand-box) { background: var(--paper-2); max-width: 760px; }
+  form { display: flex; flex-direction: column; gap: 18px; padding: 8px; }
+  .row { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 500; }
+  label em { font-style: normal; font-weight: 400; color: var(--ink-soft); }
+  input, select, textarea {
+    font: inherit; font-weight: 400; font-size: 16px; color: var(--ink);
+    background: var(--paper); border: 1.5px solid var(--ink); border-radius: var(--radius);
+    padding: 10px 12px; width: 100%;
+  }
+  textarea { resize: vertical; min-height: 140px; font-family: var(--sans); }
+  input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--heading); outline-offset: 2px; }
+  input[aria-invalid='true'], textarea[aria-invalid='true'] { border-color: #a3341f; }
+  .count { align-self: flex-end; font-weight: 400; color: var(--ink-soft); font-size: 12px; }
+
+  .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+  .send { background: var(--heading); color: var(--paper); border-color: var(--heading); padding: 10px 22px; font-size: 15px; }
+  .send:hover { background: var(--ink); border-color: var(--ink); }
+  .send[disabled] { opacity: .6; cursor: progress; }
+  .status { margin: 0; font-size: 14px; }
+  .status.ok { color: var(--heading); }
+  .status.err { color: #a3341f; }
+  .fine { margin: 0; font-size: 12px; color: var(--ink-soft); }
+</style>
+
+<script>
+  const EMAIL_RE = /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[^\s@<>()[\]\\,;:"]{2,}$/;
+  const MIN_FILL_MS = 3000;          // bots submit instantly
+  const MAX_SENDS_PER_SESSION = 3;   // gentle client-side rate limit
+  const loadedAt = Date.now();
+
+  // Assemble the visible address only in the browser.
+  document.querySelectorAll<HTMLAnchorElement>('[data-mail]').forEach((a) => {
+    const addr = `${a.dataset.u}@${a.dataset.d}`;
+    a.href = `mailto:${addr}`;
+    a.textContent = addr;
+  });
+
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  if (form) {
+    const status = form.querySelector<HTMLElement>('[data-status]')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const message = form.elements.namedItem('message') as HTMLTextAreaElement;
+    const counter = form.querySelector<HTMLElement>('[data-count]')!;
+    const to = `${form.dataset.u}@${form.dataset.d}`;
+    const key = form.dataset.key ?? '';
+
+    message.addEventListener('input', () => { counter.textContent = String(message.value.length); });
+
+    const say = (text: string, kind: 'ok' | 'err' | '' = '') => {
+      status.textContent = text;           // textContent only: never render user input as HTML
+      status.className = `status ${kind}`;
+    };
+
+    // Strip control characters and trim; keep line breaks in the message.
+    const clean = (v: string, keepNewlines = false) =>
+      (keepNewlines ? v.replace(/[^\P{C}\n\t]/gu, '') : v.replace(/\p{C}/gu, ' ')).trim();
+
+    const sendCount = () => { try { return Number(sessionStorage.getItem('vl-sends') || 0); } catch { return 0; } };
+    const bumpCount = () => { try { sessionStorage.setItem('vl-sends', String(sendCount() + 1)); } catch { /* ignore */ } };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(form);
+
+      // Bot checks: honeypot filled, or submitted faster than a person could type.
+      if (String(fd.get('botcheck') || '') !== '' || Date.now() - loadedAt < MIN_FILL_MS) {
+        say('Thanks! Your message has been received.', 'ok');   // don't tell bots they were caught
+        form.reset();
+        return;
+      }
+      if (sendCount() >= MAX_SENDS_PER_SESSION) {
+        say(`You've sent a few messages already. Please email ${to} directly.`, 'err');
+        return;
+      }
+
+      const data = {
+        name: clean(String(fd.get('name') || '')).slice(0, 100),
+        email: clean(String(fd.get('email') || '')).slice(0, 200),
+        organisation: clean(String(fd.get('organisation') || '')).slice(0, 150),
+        topic: clean(String(fd.get('topic') || '')).slice(0, 50),
+        message: clean(String(fd.get('message') || ''), true).slice(0, 3000),
+      };
+
+      // Validate
+      const fields: [keyof typeof data, boolean][] = [
+        ['name', data.name.length > 0],
+        ['email', EMAIL_RE.test(data.email)],
+        ['message', data.message.length >= 10],
+      ];
+      let firstBad: HTMLElement | null = null;
+      for (const [name, ok] of fields) {
+        const el = form.elements.namedItem(name) as HTMLElement;
+        el.setAttribute('aria-invalid', String(!ok));
+        if (!ok && !firstBad) firstBad = el;
+      }
+      if (firstBad) {
+        say('Please add your name, a valid email and a message of at least 10 characters.', 'err');
+        firstBad.focus();
+        return;
+      }
+
+      const subject = `[Vriti Labs] ${data.topic}: message from ${data.name}`;
+
+      // Mode 1: no form service configured → open the visitor's mail app.
+      if (!key) {
+        const body = [
+          data.message, '', '---',
+          `Name: ${data.name}`, `Email: ${data.email}`,
+          data.organisation && `Organisation: ${data.organisation}`,
+        ].filter(Boolean).join('\n');
+        bumpCount();
+        window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        say('Your email app should open with the message ready to send.', 'ok');
+        return;
+      }
+
+      // Mode 2: send through Web3Forms (delivers to the address the key was created for).
+      button.disabled = true;
+      say('Sending…');
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({
+            access_key: key,
+            subject,
+            from_name: 'Vriti Labs website',
+            replyto: data.email,
+            botcheck: '',
+            ...data,
+          }),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || json.success === false) throw new Error('send failed');
+        bumpCount();
+        form.reset();
+        counter.textContent = '0';
+        say("Thanks! Your message is on its way. We'll reply soon.", 'ok');
+      } catch {
+        say(`Sorry, that didn't go through. Please email ${to} directly.`, 'err');
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+</script>

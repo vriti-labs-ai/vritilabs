@@ -1,0 +1,9 @@
+---
+import Base from '../../layouts/Base.astro';
+import Tiles from '../../components/Tiles.astro';
+import { getTeamTiles } from '../../lib/utils';
+const tiles = await getTeamTiles();
+---
+<Base title="Products & Services">
+  <div style="padding-top: 32px"><Tiles title="Products & Services" tiles={tiles} headingLevel="h1" /></div>
+</Base>

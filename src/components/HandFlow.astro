@@ -1,0 +1,37 @@
+---
+// Numbered steps joined by a hand-drawn line, labels alternating above/below.
+import rough from 'roughjs';
+interface Props { steps: string[]; seed?: number; caption?: string; }
+const { steps, seed = 9, caption } = Astro.props;
+const W = 1000, H = 230, Y = 115, B = 52, PAD = 80;
+const gen = rough.generator();
+const step = (W - PAD * 2) / Math.max(steps.length - 1, 1);
+const xs = steps.map((_, i) => PAD + i * step);
+const o = (k: number) => ({ seed: seed + k, roughness: 1.1, strokeWidth: 1.3 });
+const lines = xs.slice(0, -1).flatMap((x, i) => gen.toPaths(gen.line(x + B / 2, Y, xs[i + 1] - B / 2, Y, o(i))));
+const boxes = xs.flatMap((x, i) => gen.toPaths(gen.rectangle(x - B / 2, Y - B / 2, B, B, o(i + 20))));
+const wrap = (s: string) => {
+  const words = s.split(' '); const out: string[] = []; let line = '';
+  for (const w of words) { if ((line + ' ' + w).trim().length > 14 && line) { out.push(line); line = w; } else line = (line + ' ' + w).trim(); }
+  return [...out, line];
+};
+---
+<figure class="hand-flow">
+  <div class="scroll">
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={steps.map((s, i) => `${i + 1}. ${s}`).join(', ')}>
+      {[...lines, ...boxes].map((p) => <path d={p.d} fill="none" stroke="currentColor" stroke-width="1.3" />)}
+      {steps.map((s, i) => {
+        const up = i % 2 === 1;
+        const ls = wrap(s);
+        const y0 = up ? Y - B / 2 - 14 - (ls.length - 1) * 28 : Y + B / 2 + 30;
+        return (
+          <g>
+            <text x={xs[i]} y={Y + 7} text-anchor="middle" class="num">{i + 1}</text>
+            {ls.map((l, j) => <text x={xs[i]} y={y0 + j * 28} text-anchor="middle" class="label">{l}</text>)}
+          </g>
+        );
+      })}
+    </svg>
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

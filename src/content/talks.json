@@ -1,0 +1,21 @@
+[
+  {
+    "id": "agentic-ai-iit-ism-2026",
+    "title": "Agentic AI: Economics of Autonomy",
+    "date": "2026-11-06",
+    "host": "Consulting Club, DMSIE, IIT (ISM) Dhanbad",
+    "format": "Expert session",
+    "summary": "How LLMs, reasoning and programmatic tool calling combine into agentic systems; where data moats come from; and why ROI, cost and security are still the hard questions.",
+    "post": "agentic-ai-economics-of-autonomy",
+    "source": "https://www.linkedin.com/feed/update/urn:li:activity:7524533295024484353/"
+  },
+  {
+    "id": "genai-rag-iitg-2026",
+    "title": "Building Real-World GenAI Solutions: From Fundamentals to Production-Ready RAG",
+    "date": "2026-10-15",
+    "host": "Consulting & Analytics Club, IIT Guwahati",
+    "format": "Expert session · From Tokens to Transformers course",
+    "summary": "An industry expert session for the club's free four-week GenAI course, taking learners from the fundamentals of language models to building retrieval-augmented generation (RAG) systems that hold up in production.",
+    "source": "https://caciitg.com/llm/"
+  }
+]

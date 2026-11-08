@@ -1,0 +1,23 @@
+---
+// "A + B + C" with hand-drawn plus signs.
+import rough from 'roughjs';
+interface Props { terms: string[]; seed?: number; }
+const { terms, seed = 30 } = Astro.props;
+const gen = rough.generator();
+const plus = (k: number) => [
+  ...gen.toPaths(gen.line(4, 20, 36, 20, { seed: seed + k, roughness: 1.6, strokeWidth: 3 })),
+  ...gen.toPaths(gen.line(20, 4, 20, 36, { seed: seed + k + 7, roughness: 1.6, strokeWidth: 3 })),
+];
+---
+<p class="hand-sum">
+  {terms.map((t, i) => (
+    <>
+      {i > 0 && (
+        <svg viewBox="0 0 40 40" aria-label="plus" role="img">
+          {plus(i).map((p) => <path d={p.d} fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />)}
+        </svg>
+      )}
+      <strong set:html={t} />
+    </>
+  ))}
+</p>
