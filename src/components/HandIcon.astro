@@ -61,6 +61,21 @@ function draw(icon: string) {
           return [...mark, g.line(30, y, 45, y, o(60 + row, { strokeWidth: 1.3 }))];
         }),
       ];
+    case 'world-model': { // a thought bubble holding a cube: the robot imagining its world
+      const cube = {
+        top: [[32, 15], [43, 21], [32, 27], [21, 21]] as [number, number][],
+        left: [[21, 21], [32, 27], [32, 40], [21, 34]] as [number, number][],
+        right: [[32, 27], [43, 21], [43, 34], [32, 40]] as [number, number][],
+      };
+      return [
+        g.ellipse(33, 27, 50, 42, o(71)),
+        g.polygon(cube.top, fill(72)),
+        g.polygon(cube.left, o(73)),
+        g.polygon(cube.right, o(74)),
+        g.circle(14, 52, 8, o(75, { roughness: 0.5 })),
+        g.circle(7, 59, 4.5, o(76, { roughness: 0.4, fill: 'currentColor', fillStyle: 'solid' })),
+      ];
+    }
     default:
       return [];
   }

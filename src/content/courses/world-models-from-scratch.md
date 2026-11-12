@@ -2,7 +2,8 @@
 title: World Models from Scratch
 program: robotics
 track: Robot learning track
-tagline: Build a modern robot world model one component at a time, then train a policy for the SO-101 arm inside it.
+tagline: Teach a robot arm to imagine. Build its world model from scratch, train it in simulation, then watch it pick and place on a real SO-101.
+icon: world-model
 order: 1
 facts:
   - label: Format

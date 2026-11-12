@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import HandRule from '../../../components/HandRule.astro';
+import HandIcon from '../../../components/HandIcon.astro';
 import { getServices, url } from '../../../lib/utils';
 
 export async function getStaticPaths() {
@@ -34,6 +35,7 @@ const facts = courses.length
           {courses.map((c) => (
             <li>
               <a href={url(`education/${service.id}/${c.id}/`)}>
+                {c.data.icon && <span class="cicon"><HandIcon name={c.data.icon} size={60} /></span>}
                 {c.data.track && <small>{c.data.track}</small>}
                 <b>{c.data.title}</b>
                 <span>{c.data.tagline}</span>
@@ -80,6 +82,8 @@ const facts = courses.length
   .course-list a:hover { background: var(--tile-bg-hover); }
   .course-list b { font-family: var(--serif); font-weight: 500; font-size: 20px; color: var(--heading); }
   .course-list span { font-size: 14px; }
+  .cicon { display: block; line-height: 0; color: var(--ink); margin-bottom: 6px; }
+  .course-list a:hover .cicon { color: var(--heading); }
   .course-list small { font-size: 12px; letter-spacing: .04em; color: var(--ink-soft); }
   .course-list em { font-style: normal; font-size: 14px; font-weight: 500; color: var(--heading); margin-top: 8px; }
   .back { margin-top: 24px; }

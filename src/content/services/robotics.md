@@ -5,4 +5,4 @@ order: 1
 icon: robot
 ---
 
-Hands-on robot learning courses, built and tested in simulation first and finished on a real robot arm.
+Robots that learn, built by you. Every course starts in simulation, ends on a real robot arm, and has you write each piece yourself.

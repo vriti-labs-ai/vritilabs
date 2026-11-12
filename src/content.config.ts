@@ -51,6 +51,7 @@ const courses = defineCollection({
     program: reference('services'),
     track: z.string().optional(),            // eyebrow, e.g. "Robot learning track"
     tagline: z.string(),                      // one-sentence summary for cards
+    icon: z.string().optional(),              // HandIcon name for the course card
     order: z.number().default(99),
     facts: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
     highlights: z.array(z.object({ title: z.string(), text: z.string() })).default([]),
