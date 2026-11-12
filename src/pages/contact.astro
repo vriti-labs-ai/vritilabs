@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import HandBox from '../components/HandBox.astro';
+import { getCollection } from 'astro:content';
 
 // Address split at build time so simple scrapers don't find it in the HTML.
 const user = 'contact';
@@ -12,6 +13,20 @@ const domain = 'vritilabs.com';
 const formKey = import.meta.env.PUBLIC_WEB3FORMS_KEY ?? '';
 
 const topics = ['Educational Services', 'Products & Services', 'Research', 'Talks & sessions', 'Something else'];
+const EDU_TOPIC = 'Educational Services';
+
+// Courses for the second dropdown, grouped by program (built from content, so new courses appear automatically).
+const [services, courses] = await Promise.all([getCollection('services'), getCollection('courses')]);
+const courseGroups = services
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((s) => ({
+    program: s.data.name,
+    courses: courses
+      .filter((c) => c.data.program.id === s.id)
+      .sort((a, b) => a.data.order - b.data.order)
+      .map((c) => ({ id: c.id, title: c.data.title })),
+  }))
+  .filter((g) => g.courses.length > 0);
 ---
 <Base title="Contact us" description="Get in touch with Vriti Labs.">
   <section class="wrap intro">
@@ -44,11 +59,24 @@ const topics = ['Educational Services', 'Products & Services', 'Research', 'Talk
           </label>
           <label>
             <span>Topic</span>
-            <select name="topic" required>
+            <select name="topic" required data-topic>
               {topics.map((t) => <option value={t}>{t}</option>)}
             </select>
           </label>
         </div>
+        {courseGroups.length > 0 && (
+          <label data-course-field data-edu-topic={EDU_TOPIC}>
+            <span>Course</span>
+            <select name="course" data-course>
+              <option value="">Not sure yet / general question</option>
+              {courseGroups.map((g) => (
+                <optgroup label={g.program}>
+                  {g.courses.map((c) => <option value={c.id}>{c.title}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </label>
+        )}
         <label>
           <span>Message</span>
           <textarea name="message" required minlength="10" maxlength="3000" rows="7"></textarea>
@@ -133,6 +161,26 @@ const topics = ['Educational Services', 'Products & Services', 'Research', 'Talk
 
     message.addEventListener('input', () => { counter.textContent = String(message.value.length); });
 
+    // Course dropdown: only shown when the topic is Educational Services.
+    const topicSel = form.querySelector<HTMLSelectElement>('[data-topic]')!;
+    const courseField = form.querySelector<HTMLElement>('[data-course-field]');
+    const courseSel = form.querySelector<HTMLSelectElement>('[data-course]');
+    const eduTopic = courseField?.dataset.eduTopic ?? '';
+    const syncCourse = () => {
+      if (!courseField || !courseSel) return;
+      const show = topicSel.value === eduTopic;
+      courseField.hidden = !show;
+      courseSel.disabled = !show;
+    };
+    // Arriving from a course page (?course=<id>) preselects the topic and the course.
+    const wanted = new URLSearchParams(location.search).get('course');
+    if (wanted && courseSel && Array.from(courseSel.options).some((o) => o.value === wanted)) {
+      topicSel.value = eduTopic;
+      courseSel.value = wanted;
+    }
+    topicSel.addEventListener('change', syncCourse);
+    syncCourse();
+
     const say = (text: string, kind: 'ok' | 'err' | '' = '') => {
       status.textContent = text;           // textContent only: never render user input as HTML
       status.className = `status ${kind}`;
@@ -165,6 +213,8 @@ const topics = ['Educational Services', 'Products & Services', 'Research', 'Talk
         email: clean(String(fd.get('email') || '')).slice(0, 200),
         organisation: clean(String(fd.get('organisation') || '')).slice(0, 150),
         topic: clean(String(fd.get('topic') || '')).slice(0, 50),
+        // course title (not the raw value), only when the course field is in use
+        course: courseSel && !courseSel.disabled && courseSel.value ? clean(courseSel.selectedOptions[0]?.text || '').slice(0, 120) : '',
         message: clean(String(fd.get('message') || ''), true).slice(0, 3000),
       };
 
@@ -186,7 +236,7 @@ const topics = ['Educational Services', 'Products & Services', 'Research', 'Talk
         return;
       }
 
-      const subject = `[Vriti Labs] ${data.topic}: message from ${data.name}`;
+      const subject = `[Vriti Labs] ${data.topic}${data.course ? ` – ${data.course}` : ''}: message from ${data.name}`;
 
       // Mode 1: no form service configured → open the visitor's mail app.
       if (!key) {
@@ -194,6 +244,7 @@ const topics = ['Educational Services', 'Products & Services', 'Research', 'Talk
           data.message, '', '---',
           `Name: ${data.name}`, `Email: ${data.email}`,
           data.organisation && `Organisation: ${data.organisation}`,
+          data.course && `Course: ${data.course}`,
         ].filter(Boolean).join('\n');
         bumpCount();
         window.location.href = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

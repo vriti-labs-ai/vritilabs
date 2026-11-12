@@ -110,7 +110,7 @@ const seed = 200 + index * 40;
   )}
 
   <p class="cta">
-    <a class="btn primary" href={url('contact/')}>Ask about this course</a>
+    <a class="btn primary" href={url(`contact/?course=${course.id}`)}>Ask about this course</a>
   </p>
   <HandRule seed={seed + 30} />
 </article>

@@ -276,6 +276,10 @@ A subtle paper-grain SVG noise is layered over the body background.
 1. **Default (no setup):** "Send" opens the visitor's own email app with the message pre-filled. Nothing is sent to any server, so there is no endpoint to abuse.
 2. **Direct send:** set a GitHub repository *variable* `WEB3FORMS_KEY` (Settings → Secrets and variables → Actions → Variables). The deploy workflow exposes it as `PUBLIC_WEB3FORMS_KEY`, and the form then POSTs to `https://api.web3forms.com/submit`. The key is public by design; it can only deliver to the address it was registered with. For local testing, put `PUBLIC_WEB3FORMS_KEY=...` in `.env`, which is git-ignored.
 
+**Course dropdown:** when the topic is "Educational Services", a **Course** select appears. It is built from the `courses` collection, grouped by program, with a "Not sure yet / general question" default. The chosen course title goes into the email subject and body.
+- A course page's "Ask about this course" button links to `/contact/?course=<id>`, which preselects the topic and the course.
+- New courses appear in the dropdown automatically.
+
 **Anti-abuse measures, client side, all in `contact.astro`:**
 - A honeypot field `botcheck`.
 - A minimum fill time of 3 seconds.
