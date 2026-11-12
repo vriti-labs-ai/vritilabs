@@ -3,6 +3,7 @@ import { render, type CollectionEntry } from 'astro:content';
 import HandBox from './HandBox.astro';
 import HandRule from './HandRule.astro';
 import SyllabusBreakdown from './SyllabusBreakdown.astro';
+import HandIcon from './HandIcon.astro';
 import { url } from '../lib/utils';
 
 interface Props {
@@ -22,8 +23,13 @@ const seed = 200 + index * 40;
 ---
 <article class="course" id={course.id} aria-labelledby={`${course.id}-h`}>
   <header class="head">
-    {d.track && <p class="eyebrow">{d.track}</p>}
-    <Title id={`${course.id}-h`} class="title">{d.title}</Title>
+    <div class:list={['title-row', { 'has-icon': d.icon }]}>
+      {d.icon && <span class="title-icon"><HandIcon name={d.icon} size={84} /></span>}
+      <div>
+        {d.track && <p class="eyebrow">{d.track}</p>}
+        <Title id={`${course.id}-h`} class="title">{d.title}</Title>
+      </div>
+    </div>
     <div class="overview"><Content /></div>
   </header>
 
@@ -117,6 +123,9 @@ const seed = 200 + index * 40;
 
 <style>
   .course { padding-block: 40px 8px; scroll-margin-top: 16px; }
+  .title-row.has-icon { display: flex; align-items: center; gap: 20px; }
+  .title-icon { flex: none; line-height: 0; color: var(--heading); }
+  @media (max-width: 560px) { .title-row.has-icon { gap: 12px; } .title-icon :global(svg) { width: 56px; height: 56px; } }
   .head .title { font-size: clamp(36px, 5.5vw, 60px); margin-top: 6px; }
   .overview { max-width: 62ch; margin-top: 16px; font-family: var(--serif); font-size: clamp(18px, 1.9vw, 21px); line-height: 1.55; color: var(--ink-soft); }
   .overview :global(p) { margin: 0 0 .7em; }
