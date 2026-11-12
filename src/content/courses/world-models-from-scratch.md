@@ -16,7 +16,7 @@ facts:
 highlights:
   - title: Build every component yourself
     text: Each part of the system is built by hand at small scale, in one package that grows lecture by lecture. The final demo runs on code you wrote.
-  - title: Simulator first, real arm last
+  - title: Simulator first, then real world deployment
     text: Fifteen lectures on a simulated SO-101, checked against ground truth, then the whole system moves onto the physical arm in the final lecture.
   - title: Three frontier ideas, one system
     text: Spatial 3D worlds, latent predictive models (JEPA) and generalist vision-language-action policies, combined into a single working world model.
