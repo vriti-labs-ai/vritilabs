@@ -1,7 +1,7 @@
 ---
 import HandBox from './HandBox.astro';
 import HandIcon from './HandIcon.astro';
-export interface Tile { href: string; name: string; description: string; meta?: string; tags?: string[]; icon?: string; }
+export interface Tile { href: string; name: string; description: string; meta?: string; tags?: string[]; icon?: string; disabled?: boolean; }
 interface Props { title: string; tiles: Tile[]; headingLevel?: 'h1' | 'h2'; }
 const { title, tiles, headingLevel: H = 'h2' } = Astro.props;
 const hid = `tiles-${title.toLowerCase().replace(/\W+/g, '-')}`;
@@ -9,8 +9,10 @@ const hid = `tiles-${title.toLowerCase().replace(/\W+/g, '-')}`;
 <section class="wrap tiles" aria-labelledby={hid}>
   <H id={hid} class:list={['section-title', { big: H === 'h1' }]}>{title}</H>
   <div class="grid">
-    {tiles.map((t, i) => (
-      <a class="tile" href={t.href}>
+    {tiles.map((t, i) => {
+      const Tag = t.disabled ? 'div' : 'a';
+      return (
+      <Tag class:list={['tile', { disabled: t.disabled }]} href={t.disabled ? undefined : t.href} aria-disabled={t.disabled ? 'true' : undefined}>
         <HandBox seed={i + 7}>
           {t.icon && <span class="icon"><HandIcon name={t.icon} /></span>}
           <div class="row">
@@ -24,8 +26,9 @@ const hid = `tiles-${title.toLowerCase().replace(/\W+/g, '-')}`;
             </ul>
           )}
         </HandBox>
-      </a>
-    ))}
+      </Tag>
+      );
+    })}
   </div>
 </section>
 
@@ -37,6 +40,12 @@ const hid = `tiles-${title.toLowerCase().replace(/\W+/g, '-')}`;
   .tile { text-decoration: none; display: block; }
   .tile :global(.hand-box) { height: 100%; background: var(--tile-bg); transition: background .15s; }
   .tile:hover :global(.hand-box) { background: var(--tile-bg-hover); }
+  .tile.disabled { cursor: default; color: var(--muted-ink); }
+  .tile.disabled :global(.hand-box) { background: var(--muted-bg); color: var(--muted-line); }
+  .tile.disabled h3, .tile.disabled p, .tile.disabled .meta, .tile.disabled .icon { color: var(--muted-ink); }
+  .tile.disabled .meta { font-weight: 500; border: 1px solid var(--muted-ink); border-radius: 999px; padding: 0 8px; }
+  .tile.disabled:hover :global(.hand-box) { background: var(--muted-bg); }
+  .tile.disabled:hover .icon { color: var(--muted-ink); }
   .icon { display: block; color: var(--ink); margin-bottom: 10px; line-height: 0; }
   .tile:hover .icon { color: var(--heading); }
   .row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }

@@ -5,7 +5,7 @@ import HandRule from '../../../components/HandRule.astro';
 import { getServices, url } from '../../../lib/utils';
 
 export async function getStaticPaths() {
-  const services = await getServices();
+  const services = (await getServices()).filter((s) => !s.data.comingSoon);
   return services.map((service) => ({ params: { id: service.id }, props: { service } }));
 }
 const { service } = Astro.props;

@@ -147,9 +147,9 @@ Current entries: `ai-evaluations` (order 1), `industry` (order 2), `medical` (pa
 
 ### 5.3 `services`: Educational Services programs (`src/content/services/*.md`)
 
-Fields: `name`, `description`, `order`, `format` (e.g. "8-week course"; shown as the tile's meta label), `level` (e.g. "Intermediate"). The body is Markdown, shown on the detail page.
+Fields: `name`, `description`, `order`, `icon` (a `HandIcon` name), `comingSoon` (when `true`, the Programs tile is grey with a "Coming soon" badge, is **not a link**, and no `/education/<id>/` page is built), `format` (e.g. "8-week course"; shown as the tile's meta label), `level` (e.g. "Intermediate"). The body is Markdown, shown on the detail page.
 
-Current: `robotics`, `reinforcement-learning`, `evaluations`.
+Current: `robotics` (live), `reinforcement-learning` and `evaluations` (both `comingSoon: true`; owner's request). To launch one, remove `comingSoon` and write its page content.
 
 ### 5.3a `courses`: courses inside a program (`src/content/courses/*.md`)
 
@@ -210,6 +210,7 @@ Fields: `id`, `title`, `date`, `host`, `format` (default "Talk"), `summary`, `po
 | `--heading` | `#2a5019` | **all h1/h2/h3**, deep green (owner-specified) |
 | `--tile-bg` | `#c8d5bf` | tile fill (sage) |
 | `--tile-bg-hover` | `#b8c8ad` | tile hover |
+| `--muted-bg` / `--muted-ink` / `--muted-line` | `#dedbd0` / `#6f6c63` / `#8f8b80` | grey "Coming soon" tiles |
 | `--tint-rose / sage / sky / sand` | `#e9c9c1 / #c8d5bf / #c4d4e0 / #e8d9b5` | illustration backgrounds; keep the palette to these |
 
 A subtle paper-grain SVG noise is layered over the body background.

@@ -10,6 +10,11 @@
   --tile-bg: #c8d5bf;
   --tile-bg-hover: #b8c8ad;
 
+  /* "Coming soon" tiles */
+  --muted-bg: #dedbd0;
+  --muted-ink: #6f6c63;
+  --muted-line: #8f8b80;
+
   /* Illustration tints — keep the palette small */
   --tint-rose: #e9c9c1;
   --tint-sage: #c8d5bf;
