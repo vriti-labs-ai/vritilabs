@@ -1,0 +1,532 @@
+{
+  "lecture0": {
+    "number": 0,
+    "title": "Bridge session (optional)",
+    "folder": "warmup/",
+    "buildsOn": "",
+    "fixes": "",
+    "leavesOpen": "",
+    "theory": "A reinforcement learning crash course: MDPs, value functions, the Bellman equation, policy gradients and actor-critic. Generative model intuition: autoencoders and how diffusion turns noise into samples. A robotics primer: joint and Cartesian space, forward kinematics, URDF files, control frequency and action chunks.",
+    "programming": "Build a small GPT-style transformer from scratch. Train tabular Q-learning on a gridworld and a small actor-critic on CartPole. Load the SO-101 URDF, compute forward kinematics by hand and check the result against MuJoCo.",
+    "papers": [
+      {
+        "title": "Reinforcement Learning: An Introduction",
+        "cite": "Sutton & Barto, 2nd ed., chapters 1–6 and 13 (free online)",
+        "url": "http://incompleteideas.net/book/the-book-2nd.html"
+      },
+      {
+        "title": "Let's build GPT: from scratch, in code, spelled out",
+        "cite": "Andrej Karpathy, video",
+        "url": "https://www.youtube.com/watch?v=kCc8FmEb1nY"
+      },
+      {
+        "title": "Understanding Diffusion Models: A Unified Perspective",
+        "cite": "Luo, 2022"
+      },
+      {
+        "title": "MuJoCo documentation",
+        "cite": "overview and Python bindings tutorial",
+        "url": "https://mujoco.readthedocs.io/"
+      },
+      {
+        "title": "LeRobot",
+        "cite": "getting-started guides and SO-101 docs",
+        "url": "https://github.com/huggingface/lerobot"
+      }
+    ]
+  },
+  "parts": [
+    {
+      "title": "Grounding, simulator and data",
+      "lectures": "Lectures 1–3",
+      "blurb": "Set up the simulated SO-101, collect data, and create the scoreboard and interfaces every later lecture plugs into.",
+      "items": [
+        {
+          "number": 1,
+          "title": "The landscape of modern world models",
+          "folder": "sim/",
+          "buildsOn": "Lecture 0 (optional)",
+          "fixes": "Starting point.",
+          "leavesOpen": "Nothing to predict yet: we need data that covers mistakes, not just successes.",
+          "theory": "Three families of world model: generative 3D worlds (World Labs, Genie 3), latent predictive models (JEPA, AMI) and embodied learners (Physical Intelligence, Dreamer). Why robotics needs controllability, not just good-looking video. The capstone system is specified end to end, along with the plan to work in simulation until the final lecture.",
+          "programming": "Install LeRobot and load the SO-101 MuJoCo model with a tabletop scene, a wrist camera and a front camera. Drive it through the same action interface the real arm uses, so the code moves to hardware unchanged in Lecture 16.",
+          "papers": [
+            {
+              "title": "World Models",
+              "cite": "Ha & Schmidhuber, 2018"
+            },
+            {
+              "title": "A Path Towards Autonomous Machine Intelligence",
+              "cite": "LeCun, 2022"
+            },
+            {
+              "title": "V-JEPA 2: Self-Supervised Video Models Enable Understanding, Prediction and Planning",
+              "cite": "Assran et al., 2025"
+            },
+            {
+              "title": "π0: A Vision-Language-Action Flow Model for General Robot Control",
+              "cite": "Black et al., 2024"
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "title": "Data is the world model",
+          "folder": "data/",
+          "buildsOn": "L1",
+          "fixes": "Gives the world model data that includes mistakes and visual variety.",
+          "leavesOpen": "Whether play data really matters is still a claim; Lecture 3 tests it.",
+          "theory": "A model trained only on expert demonstrations has never seen what happens after a mistake, and a policy will exploit that gap. Play data, exploration data, camera placement and the LeRobotDataset format. Domain randomisation starts here, so no model in the course overfits to one clean simulator look.",
+          "programming": "Build the collection pipeline in simulation: scripted expert demonstrations that use the simulator's privileged state, keyboard or gamepad teleoperation, motor babbling and noisy demo replays. Randomise lighting, textures, camera pose, object mass and friction. Publish two splits, expert-only and full, as LeRobotDatasets.",
+          "papers": [
+            {
+              "title": "Learning Latent Plans from Play",
+              "cite": "Lynch et al., 2019"
+            },
+            {
+              "title": "Domain Randomization for Transferring Deep Neural Networks from Simulation to the Real World",
+              "cite": "Tobin et al., 2017"
+            },
+            {
+              "title": "Open X-Embodiment: Robotic Learning Datasets and RT-X Models",
+              "cite": "2023"
+            },
+            {
+              "title": "DROID: A Large-Scale In-The-Wild Robot Manipulation Dataset",
+              "cite": "Khazatsky et al., 2024"
+            }
+          ]
+        },
+        {
+          "number": 3,
+          "title": "Dynamics from first principles",
+          "folder": "dynamics/proprio · core/ · eval/",
+          "buildsOn": "L2",
+          "fixes": "Proves the Lecture 2 claim: the expert-only model fails off-distribution, the play-data model does not.",
+          "leavesOpen": "The model sees only joints, so it is blind to the objects on the table.",
+          "theory": "The transition function, compounding error over multi-step rollouts, and epistemic versus aleatoric uncertainty. Arm kinematics are known exactly from the URDF, but commanded and actual joint states differ. This model becomes the arm module of the hybrid in Lecture 11, and its ensemble idea returns in Lectures 7 and 15.",
+          "programming": "Define the WorldModel interface (encode, predict, rollout, uncertainty) and the Policy interface that every later model and policy implements. Create the scoreboard in eval/: multi-step error, controllability and drift on a fixed held-out set. Train an MLP ensemble with servo lag twice, on expert-only and on full data, and record both on the scoreboard.",
+          "papers": [
+            {
+              "title": "Deep Reinforcement Learning in a Handful of Trials using Probabilistic Dynamics Models",
+              "cite": "Chua et al., 2018 (PETS)"
+            },
+            {
+              "title": "When to Trust Your Model: Model-Based Policy Optimization",
+              "cite": "Janner et al., 2019 (MBPO)"
+            },
+            {
+              "title": "Dyna, an Integrated Architecture for Learning, Planning, and Reacting",
+              "cite": "Sutton, 1991"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Perception and representation",
+      "lectures": "Lectures 4–5",
+      "blurb": "Turn camera streams into compact state. The JEPA encoder built here is the core every later component reads from.",
+      "items": [
+        {
+          "number": 4,
+          "title": "Visual tokenizers",
+          "folder": "tokenizer/",
+          "buildsOn": "L2",
+          "fixes": "Gives the model eyes: the Lecture 3 model could not see objects.",
+          "leavesOpen": "Reconstruction spends capacity on randomised lighting and texture; Lecture 5 measures it.",
+          "theory": "VAEs and VQ-VAE, with FSQ as optional material. Continuous versus discrete latents, and spatiotemporal compression. The VAE's latent space is where the Lecture 9 decoder writes its output, and its latents feed the Lecture 6 baseline.",
+          "programming": "Train a small spatiotemporal VAE on simulated SO-101 camera frames and compare reconstruction quality against latent size. Optional: an FSQ tokenizer for the ST-transformer extension in Lecture 8. End with a failure cell showing reconstructions faithfully copying lighting changes.",
+          "papers": [
+            {
+              "title": "Neural Discrete Representation Learning",
+              "cite": "van den Oord et al., 2017 (VQ-VAE)"
+            },
+            {
+              "title": "Finite Scalar Quantization: VQ-VAE Made Simple",
+              "cite": "Mentzer et al., 2023"
+            },
+            {
+              "title": "Language Model Beats Diffusion: Tokenizer is Key to Visual Generation",
+              "cite": "Yu et al., 2023 (MAGVIT-v2)"
+            },
+            {
+              "title": "Cosmos World Foundation Model Platform for Physical AI",
+              "cite": "NVIDIA, 2025"
+            }
+          ]
+        },
+        {
+          "number": 5,
+          "title": "Self-supervised representations: JEPA",
+          "folder": "encoder_jepa/",
+          "buildsOn": "L2, L4",
+          "fixes": "Ignores nuisance detail the VAE wasted capacity on, shown by a probe under randomisation.",
+          "leavesOpen": "Encodes single moments; it has no notion of how the scene changes under actions.",
+          "theory": "Predict in embedding space, not pixel space. Avoid collapse with EMA targets, VICReg-style regularisers and masking. This encoder is shared: the predictor, the planner and the policy all read its latents.",
+          "programming": "Train a small V-JEPA (ViT encoder plus masked latent predictor) on your simulated video, with public SO-100/SO-101 datasets from the Hugging Face Hub as extra pretraining data. Probe the VAE and JEPA latents for gripper position and for lighting under domain randomisation: the VAE tracks lighting, the JEPA latents do not.",
+          "papers": [
+            {
+              "title": "VICReg: Variance-Invariance-Covariance Regularization",
+              "cite": "Bardes et al., 2022"
+            },
+            {
+              "title": "Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture",
+              "cite": "Assran et al., 2023 (I-JEPA)"
+            },
+            {
+              "title": "Revisiting Feature Prediction for Learning Visual Representations from Video",
+              "cite": "Bardes et al., 2024 (V-JEPA)"
+            },
+            {
+              "title": "DINOv2: Learning Robust Visual Features without Supervision",
+              "cite": "Oquab et al., 2023"
+            }
+          ],
+          "milestone": "Capstone M1 due"
+        }
+      ]
+    },
+    {
+      "title": "Learning dynamics",
+      "lectures": "Lectures 6–8",
+      "blurb": "Set a baseline, build the main predictor, then give it more data than the robot alone can provide.",
+      "items": [
+        {
+          "number": 6,
+          "title": "The baseline: recurrent latent dynamics",
+          "folder": "dynamics/rssm",
+          "buildsOn": "L3, L4",
+          "fixes": "Adds visual dynamics: the first model that predicts how the scene evolves.",
+          "leavesOpen": "Compounding error, slow sequential training and a pixel-reconstruction objective.",
+          "theory": "Recurrent state-space models that combine deterministic memory with stochastic latents, KL balancing, and learning from imagined trajectories. This model sets the bar every later dynamics model must clear.",
+          "programming": "Implement an RSSM behind the WorldModel interface, train it on VAE latents and add its row to the scoreboard. End with a failure cell plotting error growth over a 50-step rollout.",
+          "papers": [
+            {
+              "title": "Learning Latent Dynamics for Planning from Pixels",
+              "cite": "Hafner et al., 2019 (PlaNet)"
+            },
+            {
+              "title": "Mastering Diverse Domains through World Models",
+              "cite": "Hafner et al., 2023 (DreamerV3)"
+            },
+            {
+              "title": "DayDreamer: World Models for Physical Robot Learning",
+              "cite": "Wu et al., 2022"
+            }
+          ]
+        },
+        {
+          "number": 7,
+          "title": "Action-conditioned JEPA predictor",
+          "folder": "dynamics/jepa_ac",
+          "buildsOn": "L3, L5, L6",
+          "fixes": "Beats the RSSM on long-horizon error, with an ablation that separates the encoder's effect from the architecture's.",
+          "leavesOpen": "Needs action-labelled data, its output cannot be viewed, and its arm sometimes takes impossible poses.",
+          "theory": "A block-causal transformer predicts future latents from current latents and an action chunk. Teacher forcing versus rollout loss, why latent prediction makes planning cheap, and ensemble heads for uncertainty, carried over from Lecture 3. This is the AMI-style main predictor of the system.",
+          "programming": "Freeze the Lecture 5 encoder and train a V-JEPA-2-AC-style predictor with ensemble heads. Also train the Lecture 6 RSSM on JEPA features, so the comparison changes one thing at a time. Add an arm-validity metric (joint limits, link lengths) to the scoreboard and test controllability.",
+          "papers": [
+            {
+              "title": "V-JEPA 2 (action-conditioned section)",
+              "cite": "Assran et al., 2025"
+            },
+            {
+              "title": "DINO-WM: World Models on Pre-trained Visual Features enable Zero-shot Planning",
+              "cite": "Zhou et al., 2024"
+            },
+            {
+              "title": "Navigation World Models",
+              "cite": "Bar et al., 2025"
+            }
+          ]
+        },
+        {
+          "number": 8,
+          "title": "Latent actions: learning from unlabeled video",
+          "folder": "dynamics/latent_actions",
+          "buildsOn": "L7",
+          "fixes": "Removes the dependence on action labels, so unlabeled video can train the predictor.",
+          "leavesOpen": "Everything still lives in latent space; nobody can see what the model predicts.",
+          "theory": "Latent action models infer the action between two frames, so video without action labels can still train an action-conditioned model. Genie's spatiotemporal transformer is covered as background.",
+          "programming": "Train a latent action model on unlabeled video: public SO-100/SO-101 clips plus simulated clips with their actions hidden. Pretrain the Lecture 7 predictor on inferred actions, fine-tune on true actions and record the data-efficiency gain on the scoreboard. Optional extension: an ST-transformer world model on FSQ tokens.",
+          "papers": [
+            {
+              "title": "Latent Action Pretraining from Videos",
+              "cite": "Ye et al., 2024 (LAPA)"
+            },
+            {
+              "title": "Genie: Generative Interactive Environments",
+              "cite": "Bruce et al., 2024"
+            },
+            {
+              "title": "Transformers are Sample-Efficient World Models",
+              "cite": "Micheli et al., 2023 (IRIS)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Rendering and grounding",
+      "lectures": "Lectures 9–11",
+      "blurb": "Show the model's predictions, fix what goes wrong in long rollouts, then combine everything into one hybrid model.",
+      "items": [
+        {
+          "number": 9,
+          "title": "Flow-matching decoder",
+          "folder": "decoder/",
+          "buildsOn": "L4, L7",
+          "fixes": "Makes predictions visible to people and to VLM judges.",
+          "leavesOpen": "Over long rollouts the background drifts and melts, and the arm still bends impossibly at times.",
+          "theory": "Flow matching explained intuitively, Diffusion Forcing for stable long rollouts, and distillation for real-time speed. The decoder lets people see the model's predictions and lets VLMs judge them; the policy never needs it.",
+          "programming": "Train a flow-matching decoder that maps predicted JEPA latents into the Lecture 4 VAE latent space; the VAE then produces pixels. Add diffusion-forcing noise and distil to a few sampling steps. End with a failure cell: a 30-second rollout where the background visibly drifts, with the drift measured on the scoreboard.",
+          "papers": [
+            {
+              "title": "Flow Matching for Generative Modeling",
+              "cite": "Lipman et al., 2022"
+            },
+            {
+              "title": "Diffusion Forcing: Next-token Prediction Meets Full-Sequence Diffusion",
+              "cite": "Chen et al., 2024"
+            },
+            {
+              "title": "Diffusion for World Modeling: Visual Details Matter in Atari",
+              "cite": "Alonso et al., 2024 (DIAMOND)"
+            },
+            {
+              "title": "Diffusion Models Are Real-Time Game Engines",
+              "cite": "Valevski et al., 2024 (GameNGen)"
+            }
+          ]
+        },
+        {
+          "number": 10,
+          "title": "Spatial intelligence: the 3D stage",
+          "folder": "stage3d/",
+          "buildsOn": "L1, L9",
+          "fixes": "Stops background drift: the decoder renders on a persistent 3D scene instead of inventing it.",
+          "leavesOpen": "The arm and object contacts are still fully learned, so arm errors remain.",
+          "theory": "NeRFs, 3D Gaussian Splatting and feed-forward reconstruction. A persistent 3D scene keeps the background consistent over long rollouts, which is World Labs' core idea.",
+          "programming": "Render multi-view images of the simulated workspace and reconstruct them with gsplat. Register the splat to the robot base frame and overlay the SO-101 using URDF forward kinematics. Condition the Lecture 9 decoder on the stage render and show the before and after on the drift metric. The same pipeline runs on a phone capture of your real table in Lecture 16.",
+          "papers": [
+            {
+              "title": "NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis",
+              "cite": "Mildenhall et al., 2020"
+            },
+            {
+              "title": "3D Gaussian Splatting for Real-Time Radiance Field Rendering",
+              "cite": "Kerbl et al., 2023"
+            },
+            {
+              "title": "DUSt3R: Geometric 3D Vision Made Easy",
+              "cite": "Wang et al., 2024"
+            },
+            {
+              "title": "VGGT: Visual Geometry Grounded Transformer",
+              "cite": "Wang et al., 2025"
+            }
+          ]
+        },
+        {
+          "number": 11,
+          "title": "The hybrid world model",
+          "folder": "dynamics/hybrid",
+          "buildsOn": "L3, L7, L9, L10",
+          "fixes": "Removes impossible arm poses: the arm comes from kinematics and the Lecture 3 model, not from the learned predictor.",
+          "leavesOpen": "The model predicts well but nothing acts in it yet.",
+          "theory": "Split the world into a static scene (the splat), a known body (kinematics plus the learned arm dynamics) and learned interactions (contacts and objects). Memory and persistence when objects leave the frame, and physics-aware Gaussians.",
+          "programming": "Compose the full model behind the WorldModel interface: the Lecture 3 model drives the arm joints, forward kinematics places the arm in the Lecture 10 stage, the Lecture 7 predictor handles objects and the Lecture 9 decoder renders. Show the arm-validity metric dropping to zero violations and check object permanence and contacts.",
+          "papers": [
+            {
+              "title": "PhysGaussian: Physics-Integrated 3D Gaussians for Generative Dynamics",
+              "cite": "Xie et al., 2024"
+            },
+            {
+              "title": "Physically Embodied Gaussian Splatting",
+              "cite": "Abou-Chakra et al., 2024"
+            },
+            {
+              "title": "Learning Interactive Real-World Simulators",
+              "cite": "Yang et al., 2023 (UniSim)"
+            }
+          ],
+          "milestone": "Capstone M2 due"
+        }
+      ]
+    },
+    {
+      "title": "Acting inside the world model",
+      "lectures": "Lectures 12–15",
+      "blurb": "Plan, imitate, measure, then improve the policy with RL in imagination. A hardware lab runs alongside these lectures: students assemble, calibrate and teleop-test the SO-101, but do not train on it yet.",
+      "items": [
+        {
+          "number": 12,
+          "title": "Planning in latent space",
+          "folder": "planner/",
+          "buildsOn": "L7, L11",
+          "fixes": "Puts the model to use: control with no learned policy at all.",
+          "leavesOpen": "Hundreds of model rollouts per step makes it slow, and it needs a goal image.",
+          "theory": "CEM and MPPI over action chunks, energy minimisation toward a goal-image embedding, and the trade-off between planning horizon and model error.",
+          "programming": "Write a planner against the WorldModel interface and run goal-image MPC on the simulated SO-101 for reaching and pick-and-place. Swap in the RSSM, the JEPA-AC and the hybrid to see planning success improve with model quality. Time each step and save planner variants for Lecture 14 to rank.",
+          "papers": [
+            {
+              "title": "V-JEPA 2 (planning experiments)",
+              "cite": "Assran et al., 2025"
+            },
+            {
+              "title": "TD-MPC2: Scalable, Robust World Models for Continuous Control",
+              "cite": "Hansen et al., 2024"
+            },
+            {
+              "title": "Information Theoretic MPC for Model-Based Reinforcement Learning",
+              "cite": "Williams et al., 2017 (MPPI)"
+            }
+          ]
+        },
+        {
+          "number": 13,
+          "title": "A mini-VLA on the shared encoder",
+          "folder": "policy/",
+          "buildsOn": "L2, L5, L12",
+          "fixes": "Replaces slow per-step search with one fast forward pass, driven by a language instruction instead of a goal image.",
+          "leavesOpen": "It can only be as good as the demonstrations, and judging it needs a reward and an evaluation method.",
+          "theory": "Action chunking, diffusion and flow-matching action heads, a VLM backbone with an action expert, FAST action tokenisation and knowledge insulation. Using the Lecture 5 encoder as the vision tower means the policy runs directly on world-model latents.",
+          "programming": "Implement the Policy interface. Train an ACT baseline, then a mini-VLA with the JEPA encoder as its vision tower, a small language model for instructions and a flow-matching action expert, trained on simulated demonstrations. Compare its speed and success with the Lecture 12 planner and with fine-tuned SmolVLA. Save checkpoints.",
+          "papers": [
+            {
+              "title": "Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware",
+              "cite": "Zhao et al., 2023 (ACT)"
+            },
+            {
+              "title": "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion",
+              "cite": "Chi et al., 2023"
+            },
+            {
+              "title": "π0.5: a Vision-Language-Action Model with Open-World Generalization",
+              "cite": "Physical Intelligence, 2025"
+            },
+            {
+              "title": "FAST: Efficient Action Tokenization for Vision-Language-Action Models",
+              "cite": "Pertsch et al., 2025"
+            },
+            {
+              "title": "SmolVLA: A Vision-Language-Action Model for Affordable and Efficient Robotics",
+              "cite": "Shukor et al., 2025"
+            }
+          ]
+        },
+        {
+          "number": 14,
+          "title": "Rewards and evaluating world models",
+          "folder": "reward/ · eval/",
+          "buildsOn": "L9, L11, L12, L13",
+          "fixes": "Supplies a reward and checks that the world model ranks policies correctly.",
+          "leavesOpen": "We can now score policies, but the imitation policy is still capped by its demonstrations.",
+          "theory": "Success classifiers on latents, VLMs judging decoded frames, and reward hacking. The metric that matters most: do policies ranked inside the world model rank the same way in the environment they will actually run in?",
+          "programming": "Train a success head on the latents. Extend the scoreboard with a harness that runs the Lecture 12 planner variants and Lecture 13 VLA checkpoints in the world model and in MuJoCo, then computes rank correlation. The same harness runs against the real arm in Lecture 16.",
+          "papers": [
+            {
+              "title": "Evaluating Real-World Robot Manipulation Policies in Simulation",
+              "cite": "Li et al., 2024 (SIMPLER)"
+            },
+            {
+              "title": "Evaluating the World Model Implicit in a Generative Model",
+              "cite": "Vafa et al., 2024"
+            }
+          ]
+        },
+        {
+          "number": 15,
+          "title": "Training the policy inside the world model",
+          "folder": "policy/wm_rl",
+          "buildsOn": "L7, L13, L14",
+          "fixes": "Lets the policy go beyond its demonstrations, using a disagreement penalty so it cannot exploit model errors.",
+          "leavesOpen": "Everything so far is simulated; the gap to the real arm remains.",
+          "theory": "Imagination RL with an actor-critic, RL fine-tuning of a VLA with advantage-conditioned methods, and synthetic demonstrations. Because the policy and the model share latents, all of it runs without decoding pixels. The Lecture 7 ensemble heads penalise states where the model is unsure.",
+          "programming": "Fine-tune the Lecture 13 policy with RL entirely in latent space using the Lecture 14 reward. First run it without the disagreement penalty and watch it exploit the model, then add the penalty. Generate synthetic trajectories for new object placements and compare all variants on the scoreboard, verified in MuJoCo.",
+          "papers": [
+            {
+              "title": "Mastering Diverse Domains through World Models",
+              "cite": "Hafner et al., 2023 (DreamerV3)"
+            },
+            {
+              "title": "π*0.6: a VLA That Learns From Experience (Recap)",
+              "cite": "Physical Intelligence, 2025"
+            },
+            {
+              "title": "DreamGen: Unlocking Generalization in Robot Learning through Video World Models",
+              "cite": "Jang et al., 2025"
+            },
+            {
+              "title": "MOPO: Model-based Offline Policy Optimization",
+              "cite": "Yu et al., 2020"
+            }
+          ],
+          "milestone": "Capstone M3 due"
+        }
+      ]
+    },
+    {
+      "title": "From simulator to the real SO-101",
+      "lectures": "Lecture 16",
+      "blurb": "Move the whole system onto the physical arm and turn real failures into new training data.",
+      "items": [
+        {
+          "number": 16,
+          "title": "Real deployment and the data flywheel",
+          "folder": "deploy/",
+          "buildsOn": "Every earlier lecture",
+          "fixes": "Closes the sim-to-real gap with real-data fine-tuning.",
+          "leavesOpen": "Real failures, which become the next round of data.",
+          "theory": "The sim-to-real gap: what the Lecture 2 randomisation covered and what it missed, and why fine-tuning on a small real dataset beats retraining. Safety limits on a real arm. The flywheel: deploy, log failures, retrain the world model, retrain the policy. A candid comparison with what frontier labs run.",
+          "programming": "On the arm assembled in the hardware lab, rebuild the 3D stage from a phone capture of your table and record a short real dataset with the Lecture 2 pipeline. Fine-tune the encoder, predictor and policy on it. Deploy with joint and velocity limits, rerun the Lecture 14 harness on the real arm and feed failures back. Final demo: a policy trained in your world model completes pick-and-place on the real SO-101.",
+          "papers": [
+            {
+              "title": "Sim-to-Real Transfer of Robotic Control with Dynamics Randomization",
+              "cite": "Peng et al., 2018"
+            },
+            {
+              "title": "DayDreamer: World Models for Physical Robot Learning",
+              "cite": "Wu et al., 2022"
+            },
+            {
+              "title": "GR00T N1: An Open Foundation Model for Generalist Humanoid Robots",
+              "cite": "NVIDIA, 2025"
+            },
+            {
+              "title": "Cosmos World Foundation Model Platform for Physical AI",
+              "cite": "NVIDIA, 2025"
+            }
+          ],
+          "milestone": "Capstone M4 due"
+        }
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M1",
+      "after": "After L5",
+      "title": "Data and perception",
+      "text": "Randomised dataset published. The probe shows the JEPA encoder ignores lighting where the VAE does not."
+    },
+    {
+      "id": "M2",
+      "after": "After L11",
+      "title": "World model",
+      "text": "The hybrid model beats the RSSM baseline on the scoreboard with zero arm-validity violations."
+    },
+    {
+      "id": "M3",
+      "after": "After L15",
+      "title": "Policy",
+      "text": "RL in the world model beats imitation alone, verified in MuJoCo."
+    },
+    {
+      "id": "M4",
+      "after": "After L16",
+      "title": "Real arm",
+      "text": "Success rate over a fixed set of real trials (for example 20), plus rank correlation between world-model and real-arm evaluations."
+    }
+  ]
+}

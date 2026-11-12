@@ -165,7 +165,18 @@ When a program has courses, `/education/<program>/` becomes a **course hub**: th
 - "What past students say" shows testimonials whose `program` matches
 - the Programs tile shows "N course(s)" and the course titles as chips
 
-Current: `world-models-from-scratch` (Robotics), summarised from the owner's 16-lecture syllabus. The full syllabus is **not** on the site yet.
+Current: `world-models-from-scratch` (Robotics), summarised from the owner's 16-lecture syllabus.
+
+### 5.3b `syllabi`: detailed lecture breakdown (`src/content/syllabi/<course-id>.json`)
+
+The file name must match the course id. It holds:
+- `lecture0` (optional bridge session)
+- `parts[]` as `{title, lectures, blurb, items: lecture[]}`
+- `milestones[]`
+
+Each lecture has: `number`, `title`, `folder`, `buildsOn`, `fixes`, `leavesOpen`, `theory`, `programming`, `papers[]` (`{title, cite, url?}`; papers without a `url` link to a Google Scholar search) and an optional `milestone` badge.
+
+It's rendered by `SyllabusBreakdown.astro` on the course page, **before "What past students say"**. Each lecture is a collapsed `<details>` row that expands on click. The World Models syllabus is transcribed verbatim from the owner's HTML syllabus.
 
 ### 5.4 `testimonials` (`src/content/testimonials.json`, an array; each entry needs a unique `id`)
 

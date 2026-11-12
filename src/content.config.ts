@@ -59,6 +59,30 @@ const courses = defineCollection({
   }),
 });
 
+// Detailed lecture-by-lecture syllabus for a course. The file name must match
+// the course id (e.g. src/content/syllabi/world-models-from-scratch.json).
+const paper = z.object({ title: z.string(), cite: z.string(), url: z.string().url().optional() });
+const lecture = z.object({
+  number: z.number(),
+  title: z.string(),
+  folder: z.string().optional(),
+  buildsOn: z.string().optional(),
+  fixes: z.string().optional(),
+  leavesOpen: z.string().optional(),
+  theory: z.string(),
+  programming: z.string(),
+  papers: z.array(paper).default([]),
+  milestone: z.string().optional(),
+});
+const syllabi = defineCollection({
+  loader: glob({ pattern: '**/*.json', base: './src/content/syllabi' }),
+  schema: z.object({
+    lecture0: lecture.optional(),
+    parts: z.array(z.object({ title: z.string(), lectures: z.string(), blurb: z.string(), items: z.array(lecture) })),
+    milestones: z.array(z.object({ id: z.string(), after: z.string(), title: z.string(), text: z.string() })).default([]),
+  }),
+});
+
 // PLACEHOLDER testimonials live in src/content/testimonials.json — replace with real, consented quotes before launch.
 const testimonials = defineCollection({
   loader: file('src/content/testimonials.json'),
@@ -90,4 +114,4 @@ const talks = defineCollection({
   }),
 });
 
-export const collections = { teams, posts, services, courses, testimonials, talks };
+export const collections = { teams, posts, services, courses, syllabi, testimonials, talks };

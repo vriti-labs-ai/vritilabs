@@ -2,16 +2,19 @@
 import { render, type CollectionEntry } from 'astro:content';
 import HandBox from './HandBox.astro';
 import HandRule from './HandRule.astro';
+import SyllabusBreakdown from './SyllabusBreakdown.astro';
 import { url } from '../lib/utils';
 
 interface Props {
   course: CollectionEntry<'courses'>;
   feedback: CollectionEntry<'testimonials'>[];
+  /** optional detailed lecture-by-lecture breakdown, shown before student feedback */
+  syllabus?: CollectionEntry<'syllabi'>;
   index?: number;
   /** true when the summary is the whole page, so the title is the page's h1 */
   standalone?: boolean;
 }
-const { course, feedback, index = 0, standalone = false } = Astro.props;
+const { course, feedback, syllabus, index = 0, standalone = false } = Astro.props;
 const Title = standalone ? 'h1' : 'h2';
 const { Content } = await render(course);
 const d = course.data;
@@ -81,6 +84,8 @@ const seed = 200 + index * 40;
       )}
     </section>
   )}
+
+  {syllabus && <SyllabusBreakdown syllabus={syllabus} />}
 
   {feedback.length > 0 && (
     <section class="block">
