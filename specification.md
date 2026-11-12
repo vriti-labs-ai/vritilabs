@@ -151,6 +151,23 @@ Fields: `name`, `description`, `order`, `format` (e.g. "8-week course"; shown as
 
 Current: `robotics`, `reinforcement-learning`, `evaluations`.
 
+### 5.3a `courses`: courses inside a program (`src/content/courses/*.md`)
+
+Each course belongs to one program via `program` (e.g. `robotics`). The Markdown body is the overview paragraph(s). Other fields:
+- `title`, `track` (eyebrow), `tagline` (one line, used on the course list), `order`
+- `facts[]` as `{label, value}`
+- `highlights[]` (selling points) as `{title, text}`
+- `parts[]` (course structure) as `{title, lectures}`
+- `audience`, `prerequisites[]`, `capstone`
+
+When a program has courses, `/education/<program>/` becomes a **course hub**:
+- the program intro and a list of its courses
+- then a full summary per course (`CourseSummary.astro`): overview, facts, "Why take this course", "The course at a glance", "Who it's for", "The capstone", "What past students say", and a contact button
+- "What past students say" shows testimonials whose `program` matches
+- the Programs tile shows "N course(s)" and the course titles as chips
+
+Current: `world-models-from-scratch` (Robotics), summarised from the owner's 16-lecture syllabus. The full syllabus is **not** on the site yet.
+
 ### 5.4 `testimonials` (`src/content/testimonials.json`, an array; each entry needs a unique `id`)
 
 | Field | Notes |

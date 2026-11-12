@@ -1,7 +1,8 @@
 ---
-import { render } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import HandRule from '../../components/HandRule.astro';
+import CourseSummary from '../../components/CourseSummary.astro';
 import { getServices, url } from '../../lib/utils';
 
 export async function getStaticPaths() {
@@ -11,22 +12,76 @@ export async function getStaticPaths() {
 const { service } = Astro.props;
 const { Content } = await render(service);
 const { name, description, format, level } = service.data;
-const facts = [format, level].filter(Boolean);
+
+// Courses under this program, and feedback from its past students.
+const courses = (await getCollection('courses', (c) => c.data.program.id === service.id))
+  .sort((a, b) => a.data.order - b.data.order);
+const feedback = (await getCollection('testimonials', (t) => t.data.program?.id === service.id))
+  .sort((a, b) => a.data.order - b.data.order);
+
+const facts = courses.length
+  ? [`${courses.length} ${courses.length === 1 ? 'course' : 'courses'}`]
+  : [format, level].filter(Boolean);
 ---
 <Base title={name} description={description}>
-  <article class="wrap svc">
-    <p class="eyebrow"><a href={url('education/')}>Educational Services</a>{facts.length > 0 && ` · ${facts.join(' · ')}`}</p>
-    <h1>{name}</h1>
-    <p class="dek">{description}</p>
-    <HandRule seed={name.length} />
-    <div class="prose"><Content /></div>
-    <p><a href={url('education/')}>← All programs</a></p>
-  </article>
+  {courses.length > 0 ? (
+    <div class="wrap hub">
+      <p class="eyebrow"><a href={url('education/')}>Educational Services</a> · {facts.join(' · ')}</p>
+      <h1>{name}</h1>
+      <p class="dek">{description}</p>
+      <div class="intro"><Content /></div>
+
+      <nav class="course-list" aria-label={`${name} courses`}>
+        <h2>Courses</h2>
+        <ul>
+          {courses.map((c) => (
+            <li>
+              <a href={`#${c.id}`}>
+                <b>{c.data.title}</b>
+                <span>{c.data.tagline}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <HandRule seed={name.length + 3} />
+
+      {courses.map((course, i) => <CourseSummary course={course} feedback={feedback} index={i} />)}
+
+      <p class="back"><a href={url('education/')}>← All programs</a></p>
+    </div>
+  ) : (
+    <article class="wrap svc">
+      <p class="eyebrow"><a href={url('education/')}>Educational Services</a>{facts.length > 0 && ` · ${facts.join(' · ')}`}</p>
+      <h1>{name}</h1>
+      <p class="dek">{description}</p>
+      <HandRule seed={name.length} />
+      <div class="prose"><Content /></div>
+      <p><a href={url('education/')}>← All programs</a></p>
+    </article>
+  )}
 </Base>
 <style>
   .svc { padding-block: 48px; max-width: 760px; }
   h1 { font-size: clamp(36px, 5vw, 60px); margin: 8px 0 16px; }
-  .dek { font-family: var(--serif); font-size: 21px; color: var(--ink-soft); margin: 0 0 32px; }
+  .dek { font-family: var(--serif); font-size: 21px; color: var(--ink-soft); margin: 0 0 24px; }
   .prose { font-family: var(--serif); font-size: 19px; line-height: 1.65; padding-block: 16px 24px; }
   .prose :global(h2) { font-size: 28px; margin: 1.4em 0 .4em; }
+
+  .hub { padding-block: 48px 32px; }
+  .hub .dek { max-width: 44ch; }
+  .intro { max-width: 62ch; font-size: 16px; color: var(--ink-soft); }
+  .intro :global(p) { margin: 0; }
+  .course-list { margin: 32px 0 24px; }
+  .course-list h2 { font-size: 22px; margin-bottom: 12px; }
+  .course-list ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .course-list a {
+    display: flex; flex-direction: column; gap: 4px; height: 100%;
+    text-decoration: none; padding: 14px 16px; border: 1.5px solid var(--ink); border-radius: var(--radius);
+    background: var(--tile-bg);
+  }
+  .course-list a:hover { background: var(--tile-bg-hover); }
+  .course-list b { font-family: var(--serif); font-weight: 500; font-size: 20px; color: var(--heading); }
+  .course-list span { font-size: 14px; }
+  .back { margin-top: 24px; }
 </style>

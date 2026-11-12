@@ -41,6 +41,24 @@ const services = defineCollection({
   }),
 });
 
+// Courses offered under an Educational Services program (e.g. Robotics).
+const courses = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/courses' }),
+  schema: z.object({
+    title: z.string(),
+    program: reference('services'),
+    track: z.string().optional(),            // eyebrow, e.g. "Robot learning track"
+    tagline: z.string(),                      // one-sentence summary for cards
+    order: z.number().default(99),
+    facts: z.array(z.object({ label: z.string(), value: z.string() })).default([]),
+    highlights: z.array(z.object({ title: z.string(), text: z.string() })).default([]),
+    parts: z.array(z.object({ title: z.string(), lectures: z.string() })).default([]),
+    audience: z.string().optional(),
+    prerequisites: z.array(z.string()).default([]),
+    capstone: z.string().optional(),
+  }),
+});
+
 // PLACEHOLDER testimonials live in src/content/testimonials.json — replace with real, consented quotes before launch.
 const testimonials = defineCollection({
   loader: file('src/content/testimonials.json'),
@@ -72,4 +90,4 @@ const talks = defineCollection({
   }),
 });
 
-export const collections = { teams, posts, services, testimonials, talks };
+export const collections = { teams, posts, services, courses, testimonials, talks };

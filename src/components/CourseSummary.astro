@@ -1,0 +1,152 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import HandBox from './HandBox.astro';
+import HandRule from './HandRule.astro';
+import { url } from '../lib/utils';
+
+interface Props {
+  course: CollectionEntry<'courses'>;
+  feedback: CollectionEntry<'testimonials'>[];
+  index?: number;
+}
+const { course, feedback, index = 0 } = Astro.props;
+const { Content } = await render(course);
+const d = course.data;
+const seed = 200 + index * 40;
+---
+<article class="course" id={course.id} aria-labelledby={`${course.id}-h`}>
+  <header class="head">
+    {d.track && <p class="eyebrow">{d.track}</p>}
+    <h2 id={`${course.id}-h`}>{d.title}</h2>
+    <div class="overview"><Content /></div>
+  </header>
+
+  {d.facts.length > 0 && (
+    <dl class="facts">
+      {d.facts.map((f) => (
+        <div><dt>{f.label}</dt><dd>{f.value}</dd></div>
+      ))}
+    </dl>
+  )}
+
+  {d.highlights.length > 0 && (
+    <section class="block">
+      <h3>Why take this course</h3>
+      <ul class="highlights">
+        {d.highlights.map((h, i) => (
+          <li>
+            <HandBox seed={seed + i}>
+              <h4>{h.title}</h4>
+              <p>{h.text}</p>
+            </HandBox>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {d.parts.length > 0 && (
+    <section class="block">
+      <h3>The course at a glance</h3>
+      <ol class="parts">
+        {d.parts.map((p, i) => (
+          <li>
+            <span class="num">{i + 1}</span>
+            <span class="txt"><b>{p.title}</b><small>{p.lectures}</small></span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )}
+
+  {(d.audience || d.capstone) && (
+    <section class="block two">
+      {d.audience && (
+        <div>
+          <h3>Who it's for</h3>
+          <p>{d.audience}</p>
+          {d.prerequisites.length > 0 && (
+            <ul class="prereq">{d.prerequisites.map((p) => <li>{p}</li>)}</ul>
+          )}
+        </div>
+      )}
+      {d.capstone && (
+        <div>
+          <h3>The capstone</h3>
+          <p>{d.capstone}</p>
+        </div>
+      )}
+    </section>
+  )}
+
+  {feedback.length > 0 && (
+    <section class="block">
+      <h3>What past students say</h3>
+      <ul class="feedback">
+        {feedback.map((t, i) => (
+          <li>
+            <HandBox seed={seed + 20 + i}>
+              <figure>
+                <span class="mark hand" aria-hidden="true">“</span>
+                <blockquote>{t.data.quote}</blockquote>
+                <figcaption>
+                  {t.data.image && <img class="avatar" src={url(t.data.image)} alt="" width="48" height="48" loading="lazy" />}
+                  <span class="who"><strong>{t.data.name}</strong>{t.data.role && <span>{t.data.role}</span>}</span>
+                </figcaption>
+              </figure>
+            </HandBox>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <p class="cta">
+    <a class="btn primary" href={url('contact/')}>Ask about this course</a>
+  </p>
+  <HandRule seed={seed + 30} />
+</article>
+
+<style>
+  .course { padding-block: 40px 8px; scroll-margin-top: 16px; }
+  .head h2 { font-size: clamp(34px, 5vw, 54px); margin-top: 6px; }
+  .overview { max-width: 62ch; margin-top: 16px; font-family: var(--serif); font-size: clamp(18px, 1.9vw, 21px); line-height: 1.55; color: var(--ink-soft); }
+  .overview :global(p) { margin: 0 0 .7em; }
+
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin: 28px 0 0; border-top: 1.5px solid var(--ink); }
+  .facts div { padding: 14px 18px 0 0; min-width: 0; }
+  .facts dt { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+  .facts dd { margin: 4px 0 0; font-weight: 500; font-size: 16px; line-height: 1.4; }
+
+  .block { margin-top: 48px; }
+  .block h3 { font-size: 26px; margin-bottom: 18px; }
+
+  .highlights, .feedback { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .highlights li :global(.hand-box) { height: 100%; background: var(--tile-bg); }
+  .highlights h4 { font-family: var(--serif); font-weight: 500; font-size: 20px; line-height: 1.25; margin: 0; color: var(--heading); }
+  .highlights p { margin: 8px 0 0; font-size: 14.5px; }
+
+  .parts { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px 24px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .parts li { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--ink); padding-top: 10px; }
+  .num { font-family: var(--serif); font-size: 44px; line-height: 1; color: var(--heading); }
+  .txt b { display: block; font-weight: 500; font-size: 16px; line-height: 1.3; }
+  .txt small { font-size: 13px; color: var(--ink-soft); }
+
+  .two { display: grid; gap: 32px 48px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .two p { margin: 0; font-size: 16px; }
+  .prereq { margin: 12px 0 0; padding-left: 20px; display: grid; gap: 6px; font-size: 15px; }
+
+  .feedback li :global(.hand-box) { height: 100%; background: var(--paper-2); }
+  figure { margin: 0; display: flex; flex-direction: column; height: 100%; }
+  .mark { font-size: 52px; line-height: .6; color: var(--heading); height: 22px; }
+  blockquote { margin: 8px 0 16px; font-family: var(--serif); font-size: 18px; line-height: 1.5; flex: 1; }
+  figcaption { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+  .avatar { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid var(--ink); object-fit: cover; flex: none; }
+  .who { display: flex; flex-direction: column; gap: 2px; }
+  .who strong { font-weight: 500; }
+  .who span { color: var(--ink-soft); }
+
+  .cta { margin: 40px 0 32px; display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn.primary { background: var(--heading); color: var(--paper); border-color: var(--heading); text-decoration: none; padding: 10px 22px; font-size: 15px; }
+  .btn.primary:hover { background: var(--ink); border-color: var(--ink); }
+</style>
