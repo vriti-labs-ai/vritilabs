@@ -25,14 +25,5 @@
     "role": "Mechanical engineer",
     "quote": "Watching a policy I had trained entirely inside my own world model pick up a block on the real SO-101 was when it all clicked. The shared scoreboard meant every lecture's improvement was something I could measure, not take on faith.",
     "image": "people/placeholder-1.svg"
-  },
-  {
-    "id": "t3",
-    "order": 13,
-    "program": "evaluations",
-    "name": "Sajikumar M",
-    "role": "ML lead",
-    "quote": "We rebuilt our whole eval suite after this workshop. Our benchmark scores went down and our confidence went up.",
-    "image": "people/placeholder-3.svg"
   }
 ]

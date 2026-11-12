@@ -302,8 +302,8 @@ A subtle paper-grain SVG noise is layered over the body background.
 | Item | Where | Status |
 |---|---|---|
 | Cover illustrations for the two real posts | `public/drawings/agentic-economics.svg`, `context-funnel.svg` | Generated with Rough.js; replace with real drawings |
-| Testimonials `t1` (Sanjay M) and `t3` (Sajikumar M) | `src/content/testimonials.json` | Names supplied by the owner; the **quote wording was drafted by the assistant**, so confirm each person approved it. The `iit-ism-*` entries are sourced quotes and appear first |
-| Portrait images | `public/people/placeholder-1.svg`, `placeholder-3.svg` | Generic sketches |
+| Testimonial `t1` (Sanjay M, Robotics) | `src/content/testimonials.json` | Name supplied by the owner; the **quote wording was drafted by the assistant** and describes the World Models course, so confirm he approved it. The `iit-ism-*` entries are sourced quotes and appear first. Sajikumar M's quote was removed (Evaluations is coming soon) |
+| Portrait image | `public/people/placeholder-1.svg` | Generic sketch |
 | Program details: lengths, the "Intermediate" level, curriculum sections | `src/content/services/*.md` | Invented by the assistant; confirm with the owner |
 | Products & Services descriptions | `src/content/teams/*.md` | Assistant-written; confirm with the owner |
 | About page experience-area one-liners | `domains` array in `src/pages/about.astro` | Assistant-written; confirm with the owner |
