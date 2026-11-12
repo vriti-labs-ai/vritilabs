@@ -1,0 +1,31 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import CourseSummary from '../../../components/CourseSummary.astro';
+import { url } from '../../../lib/utils';
+
+export async function getStaticPaths() {
+  const [courses, services] = await Promise.all([getCollection('courses'), getCollection('services')]);
+  return courses.map((course) => ({
+    params: { id: course.data.program.id, course: course.id },
+    props: { course, program: services.find((s) => s.id === course.data.program.id)! },
+  }));
+}
+const { course, program } = Astro.props;
+const feedback = (await getCollection('testimonials', (t) => t.data.program?.id === program.id))
+  .sort((a, b) => a.data.order - b.data.order);
+---
+<Base title={course.data.title} description={course.data.tagline}>
+  <div class="wrap page">
+    <p class="eyebrow crumbs">
+      <a href={url('education/')}>Educational Services</a> · <a href={url(`education/${program.id}/`)}>{program.data.name}</a>
+    </p>
+    <CourseSummary course={course} feedback={feedback} standalone />
+    <p class="back"><a href={url(`education/${program.id}/`)}>← All {program.data.name} courses</a></p>
+  </div>
+</Base>
+<style>
+  .page { padding-block: 40px 32px; }
+  .crumbs { margin: 0; }
+  .back { margin-top: 24px; }
+</style>

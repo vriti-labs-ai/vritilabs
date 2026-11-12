@@ -160,9 +160,8 @@ Each course belongs to one program via `program` (e.g. `robotics`). The Markdown
 - `parts[]` (course structure) as `{title, lectures}`
 - `audience`, `prerequisites[]`, `capstone`
 
-When a program has courses, `/education/<program>/` becomes a **course hub**:
-- the program intro and a list of its courses
-- then a full summary per course (`CourseSummary.astro`): overview, facts, "Why take this course", "The course at a glance", "Who it's for", "The capstone", "What past students say", and a contact button
+When a program has courses, `/education/<program>/` becomes a **course hub**: the program intro and a list of course cards **only** (owner's rule: no course content on the hub).
+- Each card opens `/education/<program>/<course>/` (`pages/education/[id]/[course].astro`), which shows the full summary (`CourseSummary.astro`): overview, facts, "Why take this course", "The course at a glance", "Who it's for", "The capstone", "What past students say", and a contact button.
 - "What past students say" shows testimonials whose `program` matches
 - the Programs tile shows "N course(s)" and the course titles as chips
 

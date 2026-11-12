@@ -8,8 +8,11 @@ interface Props {
   course: CollectionEntry<'courses'>;
   feedback: CollectionEntry<'testimonials'>[];
   index?: number;
+  /** true when the summary is the whole page, so the title is the page's h1 */
+  standalone?: boolean;
 }
-const { course, feedback, index = 0 } = Astro.props;
+const { course, feedback, index = 0, standalone = false } = Astro.props;
+const Title = standalone ? 'h1' : 'h2';
 const { Content } = await render(course);
 const d = course.data;
 const seed = 200 + index * 40;
@@ -17,7 +20,7 @@ const seed = 200 + index * 40;
 <article class="course" id={course.id} aria-labelledby={`${course.id}-h`}>
   <header class="head">
     {d.track && <p class="eyebrow">{d.track}</p>}
-    <h2 id={`${course.id}-h`}>{d.title}</h2>
+    <Title id={`${course.id}-h`} class="title">{d.title}</Title>
     <div class="overview"><Content /></div>
   </header>
 
@@ -109,7 +112,7 @@ const seed = 200 + index * 40;
 
 <style>
   .course { padding-block: 40px 8px; scroll-margin-top: 16px; }
-  .head h2 { font-size: clamp(34px, 5vw, 54px); margin-top: 6px; }
+  .head .title { font-size: clamp(36px, 5.5vw, 60px); margin-top: 6px; }
   .overview { max-width: 62ch; margin-top: 16px; font-family: var(--serif); font-size: clamp(18px, 1.9vw, 21px); line-height: 1.55; color: var(--ink-soft); }
   .overview :global(p) { margin: 0 0 .7em; }
 

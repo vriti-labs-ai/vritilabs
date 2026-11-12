@@ -1,9 +1,8 @@
 ---
 import { getCollection, render } from 'astro:content';
-import Base from '../../layouts/Base.astro';
-import HandRule from '../../components/HandRule.astro';
-import CourseSummary from '../../components/CourseSummary.astro';
-import { getServices, url } from '../../lib/utils';
+import Base from '../../../layouts/Base.astro';
+import HandRule from '../../../components/HandRule.astro';
+import { getServices, url } from '../../../lib/utils';
 
 export async function getStaticPaths() {
   const services = await getServices();
@@ -13,10 +12,8 @@ const { service } = Astro.props;
 const { Content } = await render(service);
 const { name, description, format, level } = service.data;
 
-// Courses under this program, and feedback from its past students.
+// Courses under this program; each has its own page with the full summary.
 const courses = (await getCollection('courses', (c) => c.data.program.id === service.id))
-  .sort((a, b) => a.data.order - b.data.order);
-const feedback = (await getCollection('testimonials', (t) => t.data.program?.id === service.id))
   .sort((a, b) => a.data.order - b.data.order);
 
 const facts = courses.length
@@ -36,17 +33,17 @@ const facts = courses.length
         <ul>
           {courses.map((c) => (
             <li>
-              <a href={`#${c.id}`}>
+              <a href={url(`education/${service.id}/${c.id}/`)}>
+                {c.data.track && <small>{c.data.track}</small>}
                 <b>{c.data.title}</b>
                 <span>{c.data.tagline}</span>
+                <em>View course →</em>
               </a>
             </li>
           ))}
         </ul>
       </nav>
       <HandRule seed={name.length + 3} />
-
-      {courses.map((course, i) => <CourseSummary course={course} feedback={feedback} index={i} />)}
 
       <p class="back"><a href={url('education/')}>← All programs</a></p>
     </div>
@@ -83,5 +80,7 @@ const facts = courses.length
   .course-list a:hover { background: var(--tile-bg-hover); }
   .course-list b { font-family: var(--serif); font-weight: 500; font-size: 20px; color: var(--heading); }
   .course-list span { font-size: 14px; }
+  .course-list small { font-size: 12px; letter-spacing: .04em; color: var(--ink-soft); }
+  .course-list em { font-style: normal; font-size: 14px; font-weight: 500; color: var(--heading); margin-top: 8px; }
   .back { margin-top: 24px; }
 </style>
