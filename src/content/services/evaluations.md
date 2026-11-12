@@ -2,6 +2,7 @@
 name: Evaluations
 description: Design rigorous tests that show what a model can really do, and where it fails.
 order: 3
+icon: checklist
 format: 4-week workshop
 level: Intermediate
 ---

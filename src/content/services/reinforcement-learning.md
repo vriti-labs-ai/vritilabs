@@ -2,6 +2,7 @@
 name: Reinforcement Learning
 description: Learn how agents improve through trial, error and reward, from bandits to modern policy methods.
 order: 2
+icon: loop
 format: 6-week course
 level: Intermediate
 ---

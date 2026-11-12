@@ -14,6 +14,7 @@ const tiles = services.map((s) => {
     name: s.data.name,
     description: s.data.description,
     meta: n ? `${n} ${n === 1 ? 'course' : 'courses'}` : s.data.format,
+    icon: s.data.icon,
     // list course titles as chips on the tile
     tags: courses.filter((c) => c.data.program.id === s.id).sort((a, b) => a.data.order - b.data.order).map((c) => c.data.title),
   };

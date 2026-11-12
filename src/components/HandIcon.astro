@@ -1,0 +1,83 @@
+---
+// Small hand-drawn icons, rendered at build time with Rough.js (no client JS).
+// Add a new icon by adding a case to `draw` below.
+import rough from 'roughjs';
+
+interface Props { name: string; size?: number; label?: string; }
+const { name, size = 56, label } = Astro.props;
+
+const g = rough.generator();
+const base = { roughness: 1.15, strokeWidth: 1.7, bowing: 1.2 };
+const o = (seed: number, extra: Record<string, unknown> = {}) => ({ ...base, seed, ...extra });
+const fill = (seed: number) => o(seed, { fill: 'currentColor', fillStyle: 'hachure', hachureGap: 3.2, fillWeight: 0.9 });
+
+// Arrowhead at point (x, y) pointing along direction angle `dir` (radians).
+const arrow = (x: number, y: number, dir: number, seed: number, len = 6) =>
+  [dir + Math.PI - 0.5, dir + Math.PI + 0.5].map((a, i) =>
+    g.line(x, y, x + len * Math.cos(a), y + len * Math.sin(a), o(seed + i)));
+
+function draw(icon: string) {
+  switch (icon) {
+    case 'robot': // robot arm: base, two links, joints and a gripper
+      return [
+        g.line(6, 58, 58, 58, o(1)),
+        g.rectangle(13, 49, 24, 9, fill(2)),
+        g.line(25, 49, 29, 30, o(3, { strokeWidth: 2.4 })),
+        g.line(29, 30, 46, 20, o(4, { strokeWidth: 2.4 })),
+        g.circle(25, 48, 6, o(5, { fill: 'var(--tile-bg, #c8d5bf)', fillStyle: 'solid' })),
+        g.circle(29, 30, 6, o(6, { fill: 'var(--tile-bg, #c8d5bf)', fillStyle: 'solid' })),
+        g.circle(46, 20, 5, o(7, { fill: 'currentColor', fillStyle: 'solid' })),
+        g.line(48, 18, 55, 12, o(8)),
+        g.line(48, 22, 56, 25, o(9)),
+        g.line(55, 12, 58, 16, o(10)),
+        g.line(56, 25, 59, 21, o(11)),
+      ];
+    case 'loop': { // agent ⇄ environment cycle around a reward star
+      const cx = 32, cy = 32, r = 21;
+      const pt = (a: number) => [cx + r * Math.cos(a), cy + r * Math.sin(a)] as const;
+      const t1 = 1.88 * Math.PI, t2 = 0.88 * Math.PI;
+      const [x1, y1] = pt(t1), [x2, y2] = pt(t2);
+      const star = Array.from({ length: 10 }, (_, i) => {
+        const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? 4.5 : 10;
+        return [cx + rr * Math.cos(a), cy + rr * Math.sin(a)] as [number, number];
+      });
+      return [
+        g.arc(cx, cy, r * 2, r * 2, 1.12 * Math.PI, t1, false, o(21)),
+        g.arc(cx, cy, r * 2, r * 2, 0.12 * Math.PI, t2, false, o(22)),
+        ...arrow(x1, y1, t1 + Math.PI / 2, 23),
+        ...arrow(x2, y2, t2 + Math.PI / 2, 25),
+        g.polygon(star, fill(27)),
+      ];
+    }
+    case 'checklist': // clipboard with two ticks and a cross
+      return [
+        g.rectangle(14, 10, 36, 48, o(31)),
+        g.rectangle(25, 6, 14, 8, fill(32)),
+        ...[0, 1, 2].flatMap((row) => {
+          const y = 24 + row * 11;
+          const mark = row === 2
+            ? [g.line(19, y - 3, 25, y + 3, o(40 + row)), g.line(25, y - 3, 19, y + 3, o(50 + row))]
+            : [g.linearPath([[18, y], [21, y + 3], [26, y - 4]], o(40 + row))];
+          return [...mark, g.line(30, y, 45, y, o(60 + row, { strokeWidth: 1.3 }))];
+        }),
+      ];
+    default:
+      return [];
+  }
+}
+
+const paths = draw(name).flatMap((d) => g.toPaths(d));
+---
+{paths.length > 0 && (
+  <svg class="hand-icon" viewBox="0 0 64 64" width={size} height={size}
+       role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : 'true'}>
+    {paths.map((p) => (
+      <path d={p.d}
+            fill="none"
+            style={p.fill && p.fill !== 'none' ? `fill:${p.fill}` : undefined}
+            stroke={p.stroke === 'none' ? 'none' : 'currentColor'}
+            stroke-width={p.strokeWidth || 1.7}
+            stroke-linecap="round" stroke-linejoin="round" />
+    ))}
+  </svg>
+)}

@@ -243,6 +243,7 @@ A subtle paper-grain SVG noise is layered over the body background.
 | `Talks.astro` | "Talks & sessions" list |
 | `HandTimeline.astro` | MDX diagram: tilted year tags on a line. Props: `items: {year, label, highlight?}[]`, `seed`, `caption` |
 | `HandFlow.astro` | MDX diagram: numbered steps joined by a line. Props: `steps: string[]`, `seed`, `caption` |
+| `HandIcon.astro` | small hand-drawn icons (Rough.js, build time). Props: `name` (`robot`, `loop`, `checklist`), `size`, `label`. Add an icon by adding a `case` in `draw()`. Programs tiles use the `icon` field in `src/content/services/*.md` |
 | `HandSum.astro` | MDX: "A + B + C" with hand-drawn plus signs. Props: `terms` (HTML strings allowed) |
 
 **Rough.js conventions:** use `rough.generator()` in the component's frontmatter, then `gen.toPaths(drawable)` and render `<path>` elements. Always pass a fixed `seed` so the output is the same on every build. A path with `stroke: 'none'` is a fill; give it `fill={p.fill}` and no stroke.

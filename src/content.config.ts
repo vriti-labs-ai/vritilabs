@@ -36,6 +36,7 @@ const services = defineCollection({
     name: z.string(),
     description: z.string(),
     order: z.number().default(99),
+    icon: z.string().optional(),     // HandIcon name, e.g. "robot"
     format: z.string().optional(),   // e.g. "6-week cohort"
     level: z.string().optional(),    // e.g. "Intermediate"
   }),

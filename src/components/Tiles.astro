@@ -1,6 +1,7 @@
 ---
 import HandBox from './HandBox.astro';
-export interface Tile { href: string; name: string; description: string; meta?: string; tags?: string[]; }
+import HandIcon from './HandIcon.astro';
+export interface Tile { href: string; name: string; description: string; meta?: string; tags?: string[]; icon?: string; }
 interface Props { title: string; tiles: Tile[]; headingLevel?: 'h1' | 'h2'; }
 const { title, tiles, headingLevel: H = 'h2' } = Astro.props;
 const hid = `tiles-${title.toLowerCase().replace(/\W+/g, '-')}`;
@@ -11,6 +12,7 @@ const hid = `tiles-${title.toLowerCase().replace(/\W+/g, '-')}`;
     {tiles.map((t, i) => (
       <a class="tile" href={t.href}>
         <HandBox seed={i + 7}>
+          {t.icon && <span class="icon"><HandIcon name={t.icon} /></span>}
           <div class="row">
             <h3>{t.name}</h3>
             {t.meta && <span class="meta">{t.meta}</span>}
@@ -35,6 +37,8 @@ const hid = `tiles-${title.toLowerCase().replace(/\W+/g, '-')}`;
   .tile { text-decoration: none; display: block; }
   .tile :global(.hand-box) { height: 100%; background: var(--tile-bg); transition: background .15s; }
   .tile:hover :global(.hand-box) { background: var(--tile-bg-hover); }
+  .icon { display: block; color: var(--ink); margin-bottom: 10px; line-height: 0; }
+  .tile:hover .icon { color: var(--heading); }
   .row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
   h3 { font-size: 22px; }
   .meta { font-size: 13px; color: var(--ink); white-space: nowrap; }
